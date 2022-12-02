@@ -1,8 +1,9 @@
 ; =========================================================
 ; Logo Screen
-; $FF6000.b - current action
 ; =========================================================
-vLogoScreen_Action   equ $FFFF6000
+vLogoScreen_Action          equ $FFFF6000   ; b
+vLogoScreen_FirstEyeAddr    equ $FFFF6002   ; l
+vLogoScreen_SsidLength      equ $FFFF6003   ; b
 
 LogoScreen:   
     lea		$C00004,a6	; load VDP
@@ -66,6 +67,7 @@ LogoScreen:
 	move.b	#1,(a0)
     move.w  #136+$80,8(a0)
     move.w  #88+$80,$C(a0)
+    move.l  a0,vLogoScreen_FirstEyeAddr
 
 	; second eye
     jsr 	FindFreeObject
@@ -97,8 +99,76 @@ LogoScreen_Loop:
 ; ---------------------------------------------------------
 LogoScreen_LoopActions:
     dc.w    LogoScreen_WaitForAnimEnd-LogoScreen_LoopActions
+
+    dc.w    LogoScreen_CheckForArduino-LogoScreen_LoopActions
+    dc.w    LogoScreen_CheckForSSID_1-LogoScreen_LoopActions
+    dc.w    LogoScreen_CheckForSSID_2-LogoScreen_LoopActions
+    dc.w    LogoScreen_GetSSID-LogoScreen_LoopActions
+
+    dc.w    LogoScreen_GotSSID-LogoScreen_LoopActions
+    dc.w    LogoScreen_NoSSID-LogoScreen_LoopActions
+
+    dc.w    LogoScreen_LoopEnd-LogoScreen_LoopActions
 ; ---------------------------------------------------------
 LogoScreen_WaitForAnimEnd:
+    move.l  vLogoScreen_FirstEyeAddr,a0
+    tst.b   $24(a0)
+    beq.s   LogoScreen_LoopEnd
+    addq.b  #2,vLogoScreen_Action
+LogoScreen_LoopEnd:
+    rts
+
+LogoScreen_CheckForArduino:
+    move.w  $B00004,d0
+    move.w  $B00004,d0
+    cmp.w   #1337,d0
+    bne.s   @rts
+    addq.b  #2,vLogoScreen_Action
+@rts
+    rts
+
+LogoScreen_CheckForSSID_1:
+    addq.b  #2,vLogoScreen_Action
+    move.b  #1,$B00000
+    rts
+
+LogoScreen_CheckForSSID_2:
+    move.w  $B00002,d0
+    beq.s   @rts
+    addq.b  #2,vLogoScreen_Action
+@rts
+    rts
+
+LogoScreen_GetSSID:
+    addq.b  #2,vLogoScreen_Action
+    move.b  $B00000,d0
+    move.b  d0,vLogoScreen_SsidLength
+    bne.s   @cont
+    addq.b  #2,vLogoScreen_Action
+    rts
+
+@cont
+    subq.b  #1,d0
+    lea     vLogoScreen_SsidLength+1,a0
+@loop
+    move.b  $B00000,(a0)+
+    dbf     d0,@loop
+    rts
+
+LogoScreen_GotSSID:
+    vram    $E000
+    moveq   #0,d0
+    move.b  vLogoScreen_SsidLength,d0
+    lea     vLogoScreen_SsidLength+1,a0
+@loop
+    moveq   #0,d1
+    move.b  (a0)+,d1
+    sub.b   #' ',d1
+    move.w  d1,$C00000
+    dbf     d0,@loop   
+    rts
+
+LogoScreen_NoSSID:
     rts
 
 ; =========================================================

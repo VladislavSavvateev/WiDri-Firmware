@@ -1,8 +1,9 @@
 ; =========================================================
 ; WiDri Logo Eye
 ; $20.w - timer
-; $22.b - do not play sound
+; $22.b - only animation
 ; $23.b - palette counter
+; $24.b - end
 ; =========================================================
 LogoEye:
     moveq   #0,d0
@@ -33,6 +34,8 @@ LogoEye_Routines:
     dc.w    LogoEye_PalFade-LogoEye_Routines
     dc.w    LogoEye_Wait-LogoEye_Routines
     dc.w    LogoEye_CheckPalCycle-LogoEye_Routines
+    dc.w    LogoEye_Wait-LogoEye_Routines
+    dc.w    LogoEye_SetFlag-LogoEye_Routines
     
     dc.w    LogoEye_Loop-LogoEye_Routines
 ; ---------------------------------------------------------
@@ -61,8 +64,8 @@ LogoEye_OpenEyeWoBrow:
     move.b  #4,$10(a0)
     move.w  #60,$20(a0)
     tst.b   $22(a0)
-    bne.s   @cont
-    add.b  #$A,1(a0)
+    beq.s   @cont
+    add.b  #$E,1(a0)
 
 @cont
     move.b  #7,$23(a0)
@@ -155,11 +158,18 @@ LogoEye_PalFade:
 LogoEye_CheckPalCycle:
     addq.b  #2,1(a0)
     sub.b   #1,$23(a0)
-    beq.s   @rts
+    beq.s   @flag
     subq.b  #6,1(a0)
-@rts   
+    jmp     @disp
+@flag   
+    move.w  #120,$20(a0)
+@disp
     jmp     DisplaySprite
-
+; ---------------------------------------------------------
+LogoEye_SetFlag:
+    addq.b  #2,1(a0)
+    move.b  #1,$24(a0)
+    jmp     DisplaySprite
 ; ---------------------------------------------------------
 ; Mappings
 ; ---------------------------------------------------------
