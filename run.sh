@@ -1,1 +1,1 @@
-/home/savok/repos/blastem/blastem rom.bin
+/home/savok/repos/widri-modified-blastem/blastem rom.bin
