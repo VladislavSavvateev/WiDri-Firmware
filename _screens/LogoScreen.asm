@@ -115,6 +115,9 @@ LogoScreen_WaitForAnimEnd:
     tst.b   $24(a0)
     beq.s   LogoScreen_LoopEnd
     addq.b  #2,vLogoScreen_Action
+
+    move.b   #$81,d0
+    jmp     PlaySound
 LogoScreen_LoopEnd:
     rts
 
@@ -166,7 +169,8 @@ LogoScreen_GotSSID:
     sub.b   #' ',d1
     move.w  d1,$C00000
     dbf     d0,@loop   
-    rts
+
+    addq.b  #2,vLogoScreen_Action
 
 LogoScreen_NoSSID:
     rts
