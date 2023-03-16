@@ -40,6 +40,11 @@ LogoEye_Routines:
     dc.w    LogoEye_Loop-LogoEye_Routines
 ; ---------------------------------------------------------
 LogoEye_Main:
+    move.b  #1,$24(a0)
+    rts
+
+    ; skip this bullshit
+
     addq.b  #2,1(a0)
     move.w  #95+(1<<13),2(a0)
     move.l  #LogoEye_Map,4(a0)
