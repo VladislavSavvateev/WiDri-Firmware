@@ -201,7 +201,7 @@ LogoScreen_GetSSID:
     rts
 
 LogoScreen_GotSSID:
-    vram    $E000
+    vram    $C000
     moveq   #0,d0
     move.b  vLogoScreen_SsidLength,d0
     lea     vLogoScreen_SsidLength+1,a0
