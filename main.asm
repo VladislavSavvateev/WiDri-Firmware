@@ -210,6 +210,11 @@ GameScreens:
 ; =========================================================
 Pal_Main:	incbin "palette/main.bin"
 Pal_Main_End:
+
+Art_BG:		incbin "artunc/bg.bin"
+Art_BG_End:
+Map_BG:		incbin "mapunc/bg.bin"
+Map_BG_End:	
 		
 ; ===========================================================================
 ; VBLANK

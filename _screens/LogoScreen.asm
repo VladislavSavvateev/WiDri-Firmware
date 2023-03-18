@@ -17,14 +17,6 @@ LogoScreen:
 
 	jsr		ClearObjects
 
-	lea		Font_Art,a0
-	moveq	#0,d0
-	move.w	#(Font_Art_End-Font_Art)/4-1,d0
-	vram	$0000
-@fntArtLoop
-	move.l	(a0)+,$C00000
-	dbf		d0,@fntArtLoop
-
 ;     lea     Logo_Art,a0
 ;     moveq   #0,d0
 ;     move.w  #(Logo_Map-Logo_Art)/4-1,d0
@@ -62,6 +54,7 @@ LogoScreen:
 ; 	move.w	(a0)+,(a1)+
 ; 	dbf		d0,@logoPalLoop
 
+    ; load main palette
     lea     Pal_Main,a0
     moveq  #0,d0
     move.w  #(Pal_Main_End-Pal_Main)/2-1,d0
@@ -69,6 +62,47 @@ LogoScreen:
 @mainPalLoop
 	move.w	(a0)+,(a1)+
 	dbf		d0,@mainPalLoop
+
+    ; load font GFX
+	lea		Font_Art,a0
+	moveq	#0,d0
+	move.w	#(Font_Art_End-Font_Art)/4-1,d0
+	vram	$0000
+@fntArtLoop
+	move.l	(a0)+,$C00000
+	dbf		d0,@fntArtLoop
+
+    ; load BG GFX
+    lea     Art_BG,a0
+    moveq   #0,d0
+    move.w  #(Art_BG_End-Art_BG)/4-1,d0
+    vram    Font_Art_End-Font_Art
+@bgArtLoop
+    move.l  (a0)+,$C00000
+    dbf     d0,@bgArtLoop
+    
+
+    ; load BG mappings
+    lea     Map_BG,a0
+    moveq   #0,d0
+    move.w  #(Map_BG_End-Map_BG)/2-1,d0
+    moveq   #40,d2
+    vram    $E000
+@bgMapLoop
+    move.w  (a0)+,d1
+    add.w   #(Font_Art_End-Font_Art)/32,d1
+    move.w  d1,$C00000
+
+    sub.b   #1,d2
+    bne.s   @lml_dbf
+    moveq   #23,d2
+@empty_tiles
+    move.w  #0,$C00000
+    dbf     d2,@empty_tiles
+    moveq   #40,d2
+
+@lml_dbf
+    dbf     d0,@bgMapLoop
 
 	; first eye
 	jsr 	FindFreeObject
