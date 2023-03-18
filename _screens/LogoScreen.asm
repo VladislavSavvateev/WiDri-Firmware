@@ -71,9 +71,6 @@ LogoScreen:
     move.b  #0,vLogoScreen_Action
     move.b  #2,vLogoScreen_Timer
 
-    move.b  #$81,d0
-    jsr     PlaySound
-
 @loop
 	move.b	#2,($FFFFF62A).w
 	jsr		DelayProgram

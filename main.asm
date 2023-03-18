@@ -183,8 +183,10 @@ GameClrRAM:
 	bsr.w	SoundDriverLoad
 	jsr		UpdateMusic
 	bsr.w	JoypadInit
-	move.b	#0,($FFFFF600).w ; set Game Mode to Sega Screen
+	move.b	#1,($FFFFF600).w ; set Game Mode to Sega Screen
 
+    move.b  #$81,d0
+    jsr     PlaySound
 ; ===========================================================================
 MainGameLoop:
 	moveq	#0,d0			; чистим d0
@@ -199,17 +201,18 @@ MainGameLoop:
 
 GameScreens:
 	dc.l	LogoScreen		; Logo Screen
+	dc.l	WifiSelectScreen
 
 ; =========================================================
 ; Game Screens
 ; =========================================================
 	include "_screens/LogoScreen.asm"
+	include "_screens/WifiSelectScreen.asm"
 
 ; =========================================================
 ; Common
 ; =========================================================
-Font_Art:
-		incbin "artunc/font.bin"
+Font_Art:	incbin "artunc/font.bin"
 Font_Art_End:
 
 Pal_Main:	incbin "palette/main.bin"
