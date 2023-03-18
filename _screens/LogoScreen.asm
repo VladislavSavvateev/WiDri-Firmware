@@ -17,43 +17,6 @@ LogoScreen:
 
 	jsr		ClearObjects
 
-;     lea     Logo_Art,a0
-;     moveq   #0,d0
-;     move.w  #(Logo_Map-Logo_Art)/4-1,d0
-;     vram    $0BE0
-; @logoArtLoop
-;     move.l  (a0)+,$C00000
-;     dbf     d0,@logoArtLoop
-
-;     lea     Logo_Map,a0
-;     moveq   #0,d0
-;     move.w  #(Logo_Map-Logo_Art)/2-1,d0
-;     vram    $E000
-;     moveq   #40,d2
-; @logoMapLoop
-;     move.w  (a0)+,d1
-;     add.w   #95,d1
-;     move.w  d1,$C00000
-
-;     sub.b   #1,d2
-;     bne.s   @lml_dbf
-;     moveq   #23,d2
-; @empty_tiles
-;     move.w  #0,$C00000
-;     dbf     d2,@empty_tiles
-;     moveq   #40,d2
-
-; @lml_dbf
-;     dbf     d0,@logoMapLoop
-
-; 	lea		Logo_Pal,a0
-; 	moveq	#0,d0
-; 	move.w	#(LogoScreen_End-Logo_Pal)/2-1,d0
-; 	lea		$FFFFFB20,a1
-; @logoPalLoop
-; 	move.w	(a0)+,(a1)+
-; 	dbf		d0,@logoPalLoop
-
     ; load main palette
     lea     Pal_Main,a0
     moveq  #0,d0
@@ -103,20 +66,6 @@ LogoScreen:
 
 @lml_dbf
     dbf     d0,@bgMapLoop
-
-	; ; first eye
-	; jsr 	FindFreeObject
-	; move.b	#1,(a0)
-    ; move.w  #136+$80,8(a0)
-    ; move.w  #88+$80,$C(a0)
-    ; move.l  a0,vLogoScreen_FirstEyeAddr
-
-	; ; second eye
-    ; jsr 	FindFreeObject
-	; move.b	#1,(a0)
-    ; move.w  #240+$80,8(a0)
-    ; move.w  #88+$80,$C(a0)
-    ; move.b  #1,$22(a0)
 
     ; reset vars
     move.b  #0,vLogoScreen_Action
@@ -233,13 +182,6 @@ LogoScreen_GotSSID:
 LogoScreen_LoopEnd:
 LogoScreen_NoSSID:
     rts
-
-; =========================================================
-; Font
-; =========================================================
-Font_Art:
-		incbin "artunc/font.bin"
-Font_Art_End:
 
 ; =========================================================
 ; Font
