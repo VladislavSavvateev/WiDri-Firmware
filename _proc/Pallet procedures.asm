@@ -84,17 +84,17 @@ Pal_AddColor:				; XREF: Pal_FadeIn
 		andi.b	#$0E,d2					; MJ: get only red
 		move.w	(a0),d3					; MJ: load current colour in buffer
 		cmp.b	d5,d4					; MJ: is it time for blue to fade?
-		bhi	FCI_NoBlue				; MJ: если нет, бранч
+		bhi	FCI_NoBlue				; MJ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ
 		addi.w	#$0200,d3				; MJ: increase blue
  
 FCI_NoBlue:
 		cmp.b	d1,d4					; MJ: is it time for green to fade?
-		bhi	FCI_NoGreen				; MJ: если нет, бранч
+		bhi	FCI_NoGreen				; MJ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ
 		addi.b	#$20,d3					; MJ: increase green
  
 FCI_NoGreen:
 		cmp.b	d2,d4					; MJ: is it time for red to fade?
-		bhi	FCI_NoRed				; MJ: если нет, бранч
+		bhi	FCI_NoRed				; MJ: пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ
 		addq.b	#$02,d3					; MJ: increase red
  
 FCI_NoRed:
@@ -365,3 +365,56 @@ loc_2006:				; XREF: Pal_AddColor2
 		addq.w	#2,a0
 		rts	
 ; End of function Pal_AddColor2
+
+; ===========================================================================
+; Palette "fade in" from black step subroutine
+; Input:
+;	a1 - to
+;	a2 - from
+;	d2 - color count
+; Output:
+;	d3 - true, if some changes was made
+; ===========================================================================
+Pal_FadeInStep:
+    moveq   #0,d0
+    moveq   #0,d1
+	moveq	#0,d3
+
+	subq.b	#1,d2
+
+@next
+    ; blue
+    move.b  (a1),d0
+    move.b  (a2),d1
+    cmp.w   d0,d1       ; CHECK
+    ble.s   @g
+    add.b   #2,(a1)
+	st		d3
+
+    ; green
+@g  move.b  1(a1),d0
+    move.b  1(a2),d1
+    and.b   #$E0,d0
+    and.b   #$E0,d1
+    cmp.w   d0,d1       ; CHECK
+    ble.s   @r
+    add.b   #$20,1(a1)
+	st		d3
+
+    ; red
+@r  move.b  1(a1),d0
+    move.b  1(a2),d1
+    and.b   #$E,d0
+    and.b   #$E,d1
+    cmp.w   d0,d1       ; CHECK
+    ble.s   @end
+    add.b   #$2,1(a1)
+	st		d3
+
+@end
+    lea     2(a1),a1
+    lea     2(a2),a2
+
+    dbf     d2,@next
+	rts
+; ===========================================================================
