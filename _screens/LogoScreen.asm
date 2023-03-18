@@ -2,8 +2,8 @@
 ; Logo Screen
 ; =========================================================
 vLogoScreen_Action          equ $FFFF6000   ; b
-vLogoScreen_FirstEyeAddr    equ $FFFF6002   ; l
-vLogoScreen_SsidLength      equ $FFFF6003   ; b
+vLogoScreen_SsidLength      equ $FFFF6002   ; b
+vLogoScreen_Timer           equ $FFFF6003   ; b
 
 LogoScreen:   
     lea		$C00004,a6	; load VDP
@@ -58,7 +58,7 @@ LogoScreen:
     lea     Pal_Main,a0
     moveq  #0,d0
     move.w  #(Pal_Main_End-Pal_Main)/2-1,d0
-    lea		$FFFFFB00,a1
+    lea		$FFFFFB80,a1
 @mainPalLoop
 	move.w	(a0)+,(a1)+
 	dbf		d0,@mainPalLoop
@@ -104,22 +104,26 @@ LogoScreen:
 @lml_dbf
     dbf     d0,@bgMapLoop
 
-	; first eye
-	jsr 	FindFreeObject
-	move.b	#1,(a0)
-    move.w  #136+$80,8(a0)
-    move.w  #88+$80,$C(a0)
-    move.l  a0,vLogoScreen_FirstEyeAddr
+	; ; first eye
+	; jsr 	FindFreeObject
+	; move.b	#1,(a0)
+    ; move.w  #136+$80,8(a0)
+    ; move.w  #88+$80,$C(a0)
+    ; move.l  a0,vLogoScreen_FirstEyeAddr
 
-	; second eye
-    jsr 	FindFreeObject
-	move.b	#1,(a0)
-    move.w  #240+$80,8(a0)
-    move.w  #88+$80,$C(a0)
-    move.b  #1,$22(a0)
+	; ; second eye
+    ; jsr 	FindFreeObject
+	; move.b	#1,(a0)
+    ; move.w  #240+$80,8(a0)
+    ; move.w  #88+$80,$C(a0)
+    ; move.b  #1,$22(a0)
 
     ; reset vars
     move.b  #0,vLogoScreen_Action
+    move.b  #2,vLogoScreen_Timer
+
+    move.b  #$81,d0
+    jsr     PlaySound
 
 @loop
 	move.b	#2,($FFFFF62A).w
@@ -140,7 +144,8 @@ LogoScreen_Loop:
     jmp     LogoScreen_LoopActions(pc,d0.w)
 ; ---------------------------------------------------------
 LogoScreen_LoopActions:
-    dc.w    LogoScreen_WaitForAnimEnd-LogoScreen_LoopActions
+    dc.w    LogoScreen_Wait-LogoScreen_LoopActions
+    dc.w    LogoScreen_PalFadeIn-LogoScreen_LoopActions
 
     dc.w    LogoScreen_CheckForArduino-LogoScreen_LoopActions
     dc.w    LogoScreen_CheckForSSID_1-LogoScreen_LoopActions
@@ -152,15 +157,26 @@ LogoScreen_LoopActions:
 
     dc.w    LogoScreen_LoopEnd-LogoScreen_LoopActions
 ; ---------------------------------------------------------
-LogoScreen_WaitForAnimEnd:
-    move.l  vLogoScreen_FirstEyeAddr,a0
-    tst.b   $24(a0)
-    beq.s   LogoScreen_LoopEnd
+LogoScreen_Wait:
+    subq.b  #1,vLogoScreen_Timer
+    bne.s   @rts
     addq.b  #2,vLogoScreen_Action
+@rts
+    rts
+    
+LogoScreen_PalFadeIn:
+    addq.b  #2,vLogoScreen_Action   ; pre-move to the next action
 
-    move.b   #$81,d0
-    jmp     PlaySound
-LogoScreen_LoopEnd:
+    lea     $FFFFFB00,a1
+    lea     $FFFFFB80,a2
+    moveq   #16,d2
+    jsr     Pal_FadeInStep  ; making one step fade
+    tst.b   d3              ; changes was made?
+    beq.s   @rts            ; if yes, branch
+
+    subq.b  #4,vLogoScreen_Action   ; if not, move to the wait action
+    move.b  #2,vLogoScreen_Timer    ; and set the timer
+@rts
     rts
 
 LogoScreen_CheckForArduino:
@@ -214,6 +230,7 @@ LogoScreen_GotSSID:
 
     addq.b  #2,vLogoScreen_Action
 
+LogoScreen_LoopEnd:
 LogoScreen_NoSSID:
     rts
 
