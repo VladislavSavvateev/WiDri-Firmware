@@ -283,3 +283,15 @@ loadArt	macro art_off, art_end, vram_addr
 	move.l	(a0)+,$C00000
 	dbf		d0,@\art_off\__loop
 	endm
+
+
+string macro name, text
+Str_\name\:
+	dc.b	\text, 0
+Str_\name\_End:
+Str_\name\_Length	equ	Str_\name\_End-Str_\name\
+	endm
+
+PosToVRAM macro base, x, y, cur_width, reg
+	move.w	#\base+\y*(\cur_width/4)+\x*2,\reg
+	endm

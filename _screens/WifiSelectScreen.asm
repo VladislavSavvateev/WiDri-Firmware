@@ -39,6 +39,10 @@ WifiSelectScreen:
     ; load list mappings
     drawMap Map_List, Map_List_End, 512, $E000, 48/8, 56/8, 224, vWSS_ListOff/32
 
+    lea     Str_SearchingForNetworks,a6
+    PosToVRAM $C000, 56/8, 112/8, 512, d7
+    jsr     DrawText
+
     ; reset vars
     move.b  #0,vWifiSelectScreen_Action
     move.b  #2,vWifiSelectScreen_Timer
