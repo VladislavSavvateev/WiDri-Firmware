@@ -18,31 +18,13 @@ WifiSelectScreen:
 	jsr		ClearObjects
 
     ; load main palette
-    lea     Pal_Main,a0
-    moveq  #0,d0
-    move.w  #(Pal_Main_End-Pal_Main)/2-1,d0
-    lea		$FFFFFB80,a1
-@mainPalLoop
-	move.w	(a0)+,(a1)+
-	dbf		d0,@mainPalLoop
+    loadPal Pal_Main, Pal_Main_End, $FFFFFB80
 
     ; load font GFX
-	lea		Font_Art,a0
-	moveq	#0,d0
-	move.w	#(Font_Art_End-Font_Art)/4-1,d0
-	vram	$0000
-@fntArtLoop
-	move.l	(a0)+,$C00000
-	dbf		d0,@fntArtLoop
+    loadArt Font_Art, Font_Art_End, $0000
 
     ; load BG GFX
-    lea     Art_BG,a0
-    moveq   #0,d0
-    move.w  #(Art_BG_End-Art_BG)/4-1,d0
-    vram    Font_Art_End-Font_Art
-@bgArtLoop
-    move.l  (a0)+,$C00000
-    dbf     d0,@bgArtLoop
+    loadArt Art_BG, Art_BG_End, Font_Art_End-Font_Art
     
     ; load BG mappings
     drawMap Map_BG, Map_BG_End, 512, $E000, 0, 0, 320, (Font_Art_End-Font_Art)/32

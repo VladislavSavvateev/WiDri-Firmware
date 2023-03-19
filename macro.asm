@@ -247,3 +247,39 @@ drawMap	macro map_off, map_end, cur_width, base, x, y, width, flags
 @\map_off\__lml_dbf
     dbf     d0,@\map_off\__MapLoop
 	endm
+
+; ---------------------------------------------------------------------
+; Macro to move pal from one addr to another
+; Inputs:
+;	pal_off - start of pal
+; 	pal_end - end of pal
+;	to		- dest addr
+; ---------------------------------------------------------------------
+loadPal	macro pal_off, pal_end, to
+	lea     \pal_off,a0
+    moveq  #0,d0
+    move.w  #(\pal_end-\pal_off)/2-1,d0
+    lea		\to,a1
+
+@\pal_off\__loop
+		move.w	(a0)+,(a1)+
+	dbf		d0,@\pal_off\__loop
+
+	endm
+
+; ---------------------------------------------------------------------
+; Macro to load raw tiles to the VRAM
+; Inputs:
+;	art_off 	- start of art
+; 	art_end 	- end of art
+;	vram_addr	- VRAM addr
+; ---------------------------------------------------------------------
+loadArt	macro art_off, art_end, vram_addr
+	lea		\art_off,a0
+	moveq	#0,d0
+	move.w	#(\art_end-\art_off)/4-1,d0
+	vram	\vram_addr
+@\art_off\__loop
+	move.l	(a0)+,$C00000
+	dbf		d0,@\art_off\__loop
+	endm
