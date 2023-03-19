@@ -285,12 +285,32 @@ loadArt	macro art_off, art_end, vram_addr
 	endm
 
 
-string macro name, text
+string macro name
 Str_\name\:
-	dc.b	\text, 0
+	if (narg=2)
+		dc.b	\2, 0
+	endc
+
+	if (narg=3)
+		dc.b	\2, \3, 0
+	endc
+
+	if (narg=4)
+		dc.b	\2, \3, \4, 0
+	endc
+
+	if (narg=5)
+		dc.b	\2, \3, \4, \5, 0
+	endc
+
+	if (narg=6)
+		dc.b	\2, \3, \4, \5, \6, 0
+	endc
 Str_\name\_End:
 Str_\name\_Length	equ	Str_\name\_End-Str_\name\
 	endm
+
+_n	equ	$0A
 
 PosToVRAM macro base, x, y, cur_width, reg
 	move.w	#\base+\y*(\cur_width/4)+\x*2,\reg
