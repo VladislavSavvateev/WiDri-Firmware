@@ -210,3 +210,40 @@ LoadArt	macro artoff, vram_art, paloff, palshft, palclr, mapoff, enidec_param, v
         moveq   #\rows,d2
         jsr		ShowVDPGraphics
 		endm
+
+; ---------------------------------------------------------------------
+; Macro to draw raw mapping to the VRAM
+; Input:
+;	map_off 	- start of mapping
+; 	map_end		- end of mapping
+;	cur_width	- current width of the VDP plane
+; 	base 		- base address in VRAM
+;	x 			- x pos of tile
+;	y 			- y pos of tile to draw
+;	width 		- width of the plane
+; 	flags 		- addition to the tile word (such as start tile, palette row, flips and priority)
+; ---------------------------------------------------------------------
+drawMap	macro map_off, map_end, cur_width, base, x, y, width, flags
+	lea     \map_off,a0
+    moveq   #0,d0
+    move.w  #(\map_end-\map_off)/2-1,d0
+    moveq   #\width/8,d2
+    vram    (\base+\y*(\cur_width/4)+\x*2)
+@\map_off\__MapLoop
+		move.w  (a0)+,d1
+		add.w   #\flags,d1
+		move.w  d1,$C00000
+
+		sub.b   #1,d2
+		bne.s   @\map_off\__lml_dbf
+		moveq   #(\cur_width-\width)/8-1,d2
+
+@\map_off\__empty_tiles
+			move.w  #0,$C00000
+		dbf     d2,@\map_off\__empty_tiles
+
+    	moveq   #\width/8,d2
+
+@\map_off\__lml_dbf
+    dbf     d0,@\map_off\__MapLoop
+	endm

@@ -21,7 +21,7 @@ WifiSelectScreen:
     lea     Pal_Main,a0
     moveq  #0,d0
     move.w  #(Pal_Main_End-Pal_Main)/2-1,d0
-    lea		$FFFFFB00,a1
+    lea		$FFFFFB80,a1
 @mainPalLoop
 	move.w	(a0)+,(a1)+
 	dbf		d0,@mainPalLoop
@@ -44,28 +44,8 @@ WifiSelectScreen:
     move.l  (a0)+,$C00000
     dbf     d0,@bgArtLoop
     
-
     ; load BG mappings
-    lea     Map_BG,a0
-    moveq   #0,d0
-    move.w  #(Map_BG_End-Map_BG)/2-1,d0
-    moveq   #40,d2
-    vram    $E000
-@bgMapLoop
-    move.w  (a0)+,d1
-    add.w   #(Font_Art_End-Font_Art)/32,d1
-    move.w  d1,$C00000
-
-    sub.b   #1,d2
-    bne.s   @lml_dbf
-    moveq   #23,d2
-@empty_tiles
-    move.w  #0,$C00000
-    dbf     d2,@empty_tiles
-    moveq   #40,d2
-
-@lml_dbf
-    dbf     d0,@bgMapLoop
+    drawMap Map_BG, Map_BG_End, 512, $E000, 0, 0, 320, (Font_Art_End-Font_Art)/32
 
     ; reset vars
     move.b  #0,vWifiSelectScreen_Action
