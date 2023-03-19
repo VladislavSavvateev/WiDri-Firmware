@@ -223,6 +223,11 @@ Art_BG_End:
 Map_BG:		incbin "mapunc/bg.bin"
 Map_BG_End:	
 
+Art_List:	incbin	"artunc/list.bin"
+Art_List_End:
+Map_List:	incbin	"mapunc/list.bin"
+Map_List_End:
+
 		
 ; ===========================================================================
 ; VBLANK

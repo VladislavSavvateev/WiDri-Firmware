@@ -5,6 +5,10 @@ vWifiSelectScreen_Action          equ $FFFF6000   ; b
 vWifiSelectScreen_Timer           equ $FFFF6001   ; b
 vWifiSelectScreen_FoundWifiAPs    equ $FFFF6010   ; unknown size
 
+vWSS_FontOff    equ $0000
+vWSS_BgOff      equ vWSS_FontOff+(Font_Art_End-Font_Art)
+vWSS_ListOff    equ vWSS_BgOff+(Art_BG_End-Art_BG)
+
 WifiSelectScreen:   
     lea		$C00004,a6	; load VDP
 	move.w	#$8004,(a6)	; Reg#00: H-Int disabled, line counter disabled
@@ -21,13 +25,19 @@ WifiSelectScreen:
     loadPal Pal_Main, Pal_Main_End, $FFFFFB80
 
     ; load font GFX
-    loadArt Font_Art, Font_Art_End, $0000
+    loadArt Font_Art, Font_Art_End, vWSS_FontOff
 
     ; load BG GFX
-    loadArt Art_BG, Art_BG_End, Font_Art_End-Font_Art
+    loadArt Art_BG, Art_BG_End, vWSS_BgOff
     
     ; load BG mappings
-    drawMap Map_BG, Map_BG_End, 512, $E000, 0, 0, 320, (Font_Art_End-Font_Art)/32
+    drawMap Map_BG, Map_BG_End, 512, $E000, 0, 0, 320, vWSS_BgOff/32
+
+    ; load list GFX
+    loadArt Art_List, Art_List_End, vWSS_ListOff
+
+    ; load list mappings
+    drawMap Map_List, Map_List_End, 512, $E000, 48/8, 56/8, 224, vWSS_ListOff/32
 
     ; reset vars
     move.b  #0,vWifiSelectScreen_Action
