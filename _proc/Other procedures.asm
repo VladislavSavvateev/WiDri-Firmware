@@ -6,16 +6,16 @@
 
 
 JoypadInit:				; XREF: GameClrRAM
-		move.w	#$100,($A11100).l ; остановка Z80
+		move.w	#$100,($A11100).l ; пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Z80
 
 Joypad_WaitZ80:
-		btst	#0,($A11100).l	; Z80 остановлен?
-		bne.s	Joypad_WaitZ80	; если нет, бранч
+		btst	#0,($A11100).l	; Z80 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ?
+		bne.s	Joypad_WaitZ80	; пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ
 		moveq	#$40,d0
 		move.b	d0,($A10009).l	; init port 1 (joypad 1)
 		move.b	d0,($A1000B).l	; init port 2 (joypad 2)
 		move.b	d0,($A1000D).l	; init port 3 (extra)
-		move.w	#0,($A11100).l	; запуск Z80
+		move.w	#0,($A11100).l	; пїЅпїЅпїЅпїЅпїЅпїЅ Z80
 		rts	
 ; End of function JoypadInit
 
@@ -62,9 +62,9 @@ Joypad_Read:
 
 
 DelayProgram:				; XREF: PauseGame
-		move	#$2300,sr	; отключение прерываний
+		move	#$2300,sr	; пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	@wait:	tst.b	($FFFFF62A).w	; has VBlank routine finished?
-		bne.s	@wait		; если нет, бранч
+		bne.s	@wait		; пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ
 		rts	
 ; End of function DelayProgram
 
@@ -186,3 +186,19 @@ loc_2D04:				; XREF: CalcAngle
 Angle_Data:	incbin	misc\angles.bin
 
 ; ===========================================================================
+
+; ===========================================================================
+; Sends write request to VRAM.
+; d7.l - VRAM addr
+; !! CORRUPTS D6 !!
+; ===========================================================================
+Req_W_VRAM:
+	move.w	d7,d6
+	and.w	#$3FFF,d6
+	add.w	#$4000,d6
+	move.w	d6,$C00004
+	move.w	d7,d6
+	lsr.w	#8,d6
+	lsr.w	#6,d6
+	move.w	d6,$C00004
+	rts

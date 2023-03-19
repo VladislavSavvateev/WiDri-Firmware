@@ -228,7 +228,8 @@ drawMap	macro map_off, map_end, cur_width, base, x, y, width, flags
     moveq   #0,d0
     move.w  #(\map_end-\map_off)/2-1,d0
     moveq   #\width/8,d2
-    vram    (\base+\y*(\cur_width/4)+\x*2)
+	move.w	#(\base+\y*(\cur_width/4)+\x*2),d7
+	jsr		Req_W_VRAM
 @\map_off\__MapLoop
 		move.w  (a0)+,d1
 		add.w   #\flags,d1
@@ -236,11 +237,10 @@ drawMap	macro map_off, map_end, cur_width, base, x, y, width, flags
 
 		sub.b   #1,d2
 		bne.s   @\map_off\__lml_dbf
-		moveq   #(\cur_width-\width)/8-1,d2
 
 @\map_off\__empty_tiles
-			move.w  #0,$C00000
-		dbf     d2,@\map_off\__empty_tiles
+		add.w	#(\cur_width/4),d7
+		jsr		Req_W_VRAM
 
     	moveq   #\width/8,d2
 
