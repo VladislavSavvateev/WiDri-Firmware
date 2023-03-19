@@ -1,9 +1,11 @@
 ; =========================================================
 ; WiFi AP Select Screen
 ; =========================================================
-vWifiSelectScreen_Action          equ $FFFF6000   ; b
-vWifiSelectScreen_Timer           equ $FFFF6001   ; b
-vWifiSelectScreen_FoundWifiAPs    equ $FFFF6010   ; unknown size
+vWifiSelectScreen_Action            equ $FFFF6000   ; b
+vWifiSelectScreen_Timer             equ $FFFF6001   ; b
+vWifiSelectScreen_ListOffset        equ $FFFF6002   ; b
+vWifiSelectScreen_ListPos           equ $FFFF6003   ; b
+vWifiSelectScreen_FoundWifiAPs      equ $FFFF6010   ; unknown size
 
 vWSS_FontOff    equ $0000
 vWSS_BgOff      equ vWSS_FontOff+(Font_Art_End-Font_Art)
@@ -75,11 +77,12 @@ WifiSelectScreen_LoopActions:
     dc.w    WifiSelectScreen_CheckForSearchEnd_2-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_CheckForSearchEnd_3-WifiSelectScreen_LoopActions
 
-    dc.w    WiFiSelectScreen_GettingListOfAPs_1-WifiSelectScreen_LoopActions
-    dc.w    WiFiSelectScreen_GettingListOfAPs_2-WifiSelectScreen_LoopActions
-    dc.w    WiFiSelectScreen_GettingListOfAPs_3-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_GettingListOfAPs_1-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_GettingListOfAPs_2-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_GettingListOfAPs_3-WifiSelectScreen_LoopActions
 
-    dc.w    WiFiSelectScreen_PrintingAllAPs-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_ClearList-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_DrawList-WifiSelectScreen_LoopActions
 
     dc.w    WifiSelectScreen_LoopEnd-WifiSelectScreen_LoopActions
 ; ---------------------------------------------------------
@@ -143,12 +146,12 @@ WifiSelectScreen_CheckForSearchEnd_3:       ; checking for the SCAN_COMPLETE
 
 ; ---------------------------------------------------------------------------
 
-WiFiSelectScreen_GettingListOfAPs_1:       ; sending wifi.get_scan_results
+WifiSelectScreen_GettingListOfAPs_1:       ; sending wifi.get_scan_results
     move.b  #8,$B00000
     addq.b  #2,vLogoScreen_Action
     rts
 
-WiFiSelectScreen_GettingListOfAPs_2:
+WifiSelectScreen_GettingListOfAPs_2:
     move.w  $B00002,d0
     beq.s   @rts
     addq.b  #2,vLogoScreen_Action
@@ -168,13 +171,14 @@ WifiSelectScreen_GettingListOfAPs_3:
 @apLoop
         moveq   #0,d1
         move.b  $B00000,d1  ; get SSID length
-        move.b  d1,(a0)+
         subq.b  #1,d1
 
 @ssidLoop
             move.b  $B00000,(a0)+   ; SSID char by char
             dbf     d1,@ssidLoop
         
+        move.b  #0,(a0)+        ; string stop byte
+
         move.b  $B00000,(a0)+   ; sec byte
         dbf     d0,@apLoop
     
@@ -182,35 +186,38 @@ WifiSelectScreen_GettingListOfAPs_3:
 
 ; ---------------------------------------------------------------------------
 
-WiFiSelectScreen_PrintingAllAPs:
-    vram    $C000
+WifiSelectScreen_ClearList:
+    addq.b  #2,vWifiSelectScreen_Action
+    clearRect 512, $C000, 48, 56, 224, 120, 0
+    rts
 
-    moveq   #0,d0
+WifiSelectScreen_DrawList:
+    lea     vWifiSelectScreen_FoundWifiAPs,a6
+    moveq   #0,d1
+    move.b  (a6)+,d1        ; APs count
+    
+    cmp.b   #5,d1
+    ble.s   @okCount
+    move.b  #5,d1 
 
-    lea     vWifiSelectScreen_FoundWifiAPs,a0
-    move.b  (a0)+,d0        ; count of APs
-    subq.b  #1,d0
-
+@okCount
+    subq.b   #1,d1
+    ; start 
+    ; x - 80
+    ; y - 64
+    PosToVRAM $C000, 80/8, 64/8, 512, d7
 @apLoop
-        moveq   #0,d1
-        move.b  (a0)+,d1    ; SSID length
-        subq.b  #1,d1
 
-@ssidLoop
-            moveq   #0,d2
-            move.b  (a0)+,d2
-            sub.b   #' ',d2
-            move.w  d2,$C00000
-            dbf     d1,@ssidLoop
-        
-        moveq   #0,d2
-        move.b  #','-' ',d2
-        move.w  d2,$C00000
-        moveq   #0,d2
-        move.w  d2,$C00000
-        lea     1(a0),a0
+        jsr     DrawText    ; draw SSID
+        move.b  (a6)+,d2    ; skip sec byte
+        add.w   #512/4*3,d7 ; next item
 
-        dbf     d0,@apLoop
+    dbf     d1,@apLoop
+
+    rts
+
+; ---------------------------------------------------------------------------
+
 
 WifiSelectScreen_LoopEnd:
     rts

@@ -4,6 +4,8 @@
 ; d7.w - VRAM addr
 ; d5.w - current width of plane
 ; a6.l - string location
+;
+; !! CORRUPTS D0 !!
 ; =====================================================================
 DrawText:
     lsr.w   #2,d5
@@ -29,7 +31,7 @@ DrawText:
     bra     @loop
 
 @nonControl
-    sub.b  #' ',d0
+    sub.b   #' ',d0
     move.w  d0,$C00000
     bsr     @loop
 

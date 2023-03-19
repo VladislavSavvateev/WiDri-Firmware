@@ -315,3 +315,35 @@ _n	equ	$0A
 PosToVRAM macro base, x, y, cur_width, reg
 	move.w	#\base+\y*(\cur_width/4)+\x*2,\reg
 	endm
+
+; ---------------------------------------------------------------------
+; Macro to clear rect on plane
+; Input:
+;	cur_width	- current width of the VDP plane
+; 	base 		- base address in VRAM
+;	x 			- x pos of tile
+;	y 			- y pos of tile to draw
+;	width 		- width of the rect
+;	height		- height of the rect 
+;	clearWith	- clear value
+; ---------------------------------------------------------------------
+clearRect	macro cur_width, base, x, y, width, height, clearWith
+    moveq   #0,d0
+    move.w  #\height/8-1,d0
+    moveq   #\width/8,d2
+	PosToVRAM	\base, \x/8, \y/8, \cur_width, d7
+	jsr		Req_W_VRAM
+@clearRect__MapLoop
+		move.w  #\clearWith,$C00000
+
+		sub.b   #1,d2
+		bne.s   @clearRect__MapLoop
+
+		add.w	#(\cur_width/4),d7
+		jsr		Req_W_VRAM
+
+    	moveq   #\width/8,d2
+
+@clearRect__lml_dbf
+    dbf     d0,@clearRect__MapLoop
+	endm
