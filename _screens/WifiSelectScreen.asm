@@ -10,6 +10,7 @@ vWifiSelectScreen_FoundWifiAPs      equ $FFFF6010   ; unknown size
 vWSS_FontOff    equ $0000
 vWSS_BgOff      equ vWSS_FontOff+(Font_Art_End-Font_Art)
 vWSS_ListOff    equ vWSS_BgOff+(Art_BG_End-Art_BG)
+vWSS_LocksOff   equ vWSS_ListOff+(Art_List_End-Art_List)
 
 WifiSelectScreen:   
     lea		$C00004,a6	; load VDP
@@ -40,6 +41,9 @@ WifiSelectScreen:
 
     ; load list mappings
     drawMap Map_List, Map_List_End, 512, $E000, 48/8, 56/8, 224, vWSS_ListOff/32
+
+    ; load locks GFX
+    loadArt Art_Lock, Art_Lock__End, vWSS_LocksOff
 
     lea     Str_SearchingForNetworks,a6
     PosToVRAM $C000, 56/8, 112/8, 512, d7
@@ -192,25 +196,32 @@ WifiSelectScreen_ClearList:
     rts
 
 WifiSelectScreen_DrawList:
-    lea     vWifiSelectScreen_FoundWifiAPs,a6
+    addq.b  #2,vWifiSelectScreen_Action
+
+    lea     vWifiSelectScreen_FoundWifiAPs,a6   ; loading found APs
     moveq   #0,d1
     move.b  (a6)+,d1        ; APs count
     
-    cmp.b   #5,d1
-    ble.s   @okCount
-    move.b  #5,d1 
+    cmp.b   #5,d1       ; check if networks more than 5
+    ble.s   @okCount    ; if not, branch
+    move.b  #5,d1       ; else limit loop counter to 5
 
 @okCount
-    subq.b   #1,d1
-    ; start 
-    ; x - 80
-    ; y - 64
-    PosToVRAM $C000, 80/8, 64/8, 512, d7
+    subq.b  #1,d1                           ; decrement loop counter for dbf
+    move.w  #128+58,d2                      ; lock sprite y pos
+    PosToVRAM $C000, 80/8, 64/8, 512, d4    ; SSID VRAM pos 
 @apLoop
-
+        move.w  d4,d7       ; move VRAM pos to d7
         jsr     DrawText    ; draw SSID
-        move.b  (a6)+,d2    ; skip sec byte
-        add.w   #512/4*3,d7 ; next item
+
+        jsr     FindFreeObject  ; find free obj slot
+        move.b  #2,(a0)         ; set "Lock" obj
+        move.b  (a6)+,$20(a0)   ; set sec byte
+        move.w  #128+60,$8(a0)  ; set x pos
+        move.w  d2,$C(a0)       ; move y pos
+
+        add.w   #512/4*3,d4 ; next line for SSID
+        add.w   #24,d2      ; next y pos for lock obj
 
     dbf     d1,@apLoop
 

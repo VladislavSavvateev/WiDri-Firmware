@@ -227,9 +227,11 @@ AnimateSprite:
 		
 ObjectOffsets:
 	dc.l	LogoEye
+	dc.l	Obj_Lock
 
 		
 ; =====================================================================
 ; Object Includes
 ; =====================================================================
 	include "_obj/LogoEye.asm"
+	include "_obj/Lock.asm"
