@@ -27,6 +27,11 @@ WifiSelectScreen:
     ; load main palette
     loadPal Pal_Main, Pal_Main_End, $FFFFFB80
 
+    lea     $FFFFFB20,a1
+    lea     $FFFFFB80,a2
+    moveq   #16,d2
+    jsr     Pal_FadeInStep  ; making one step fade
+
     ; load font GFX
     loadArt Font_Art, Font_Art_End, vWSS_FontOff
 
@@ -47,6 +52,7 @@ WifiSelectScreen:
 
     lea     Str_SearchingForNetworks,a6
     PosToVRAM $C000, 56/8, 112/8, 512, d7
+    move.w  #0,d3
     jsr     DrawText
 
     ; reset vars
@@ -87,6 +93,8 @@ WifiSelectScreen_LoopActions:
 
     dc.w    WifiSelectScreen_ClearList-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_DrawList-WifiSelectScreen_LoopActions
+
+    dc.w    WifiSelectScreen_Control-WifiSelectScreen_LoopActions
 
     dc.w    WifiSelectScreen_LoopEnd-WifiSelectScreen_LoopActions
 ; ---------------------------------------------------------
@@ -169,6 +177,19 @@ WifiSelectScreen_GettingListOfAPs_3:
 
     lea     vWifiSelectScreen_FoundWifiAPs,a0
     move.b  $B00000,d0  ; get APs count
+
+    cmp.b   #5,d0
+    bgt.s   @bigger
+
+    move.b  d0,d2
+    sub.b   #1,d2
+    move.b  d2,vWifiSelectScreen_ListPos
+    bra.s   @cont
+
+@bigger
+    move.b  #4,vWifiSelectScreen_ListPos
+
+@cont
     move.b  d0,(a0)+
     subq.b  #1,d0
 
@@ -199,9 +220,21 @@ WifiSelectScreen_DrawList:
     addq.b  #2,vWifiSelectScreen_Action
 
     lea     vWifiSelectScreen_FoundWifiAPs,a6   ; loading found APs
+    moveq   #0,d0
     moveq   #0,d1
     move.b  (a6)+,d1        ; APs count
-    
+    move.b  vWifiSelectScreen_ListOffset,d0
+    beq.s   @skipOffset
+    subq.b  #1,d0
+
+@offsetLoop
+        move.b  (a6)+,d2
+        bne.s   @offsetLoop
+
+    dbf     d0,@offsetLoop
+    move.b  #5,d1
+
+@skipOffset 
     cmp.b   #5,d1       ; check if networks more than 5
     ble.s   @okCount    ; if not, branch
     move.b  #5,d1       ; else limit loop counter to 5
@@ -212,6 +245,16 @@ WifiSelectScreen_DrawList:
     PosToVRAM $C000, 80/8, 64/8, 512, d4    ; SSID VRAM pos 
 @apLoop
         move.w  d4,d7       ; move VRAM pos to d7
+
+        move.b  vWifiSelectScreen_ListPos,d3
+        cmp.b   d1,d3
+        beq.s   @fr
+
+        move.w  #(1<<13),d3 ; second pal row
+        bra.s   @drawSSID   
+@fr
+        moveq   #0,d3       ; first pal row
+@drawSSID
         jsr     DrawText    ; draw SSID
 
         jsr     FindFreeObject  ; find free obj slot
@@ -225,6 +268,42 @@ WifiSelectScreen_DrawList:
 
     dbf     d1,@apLoop
 
+    rts
+
+WifiSelectScreen_Control:
+    btst    #iUp,Joypad+Press   
+    beq.s   @down
+
+    moveq   #0,d0
+    moveq   #0,d1
+    move.b  vWifiSelectScreen_FoundWifiAPs,d0
+    move.b  vWifiSelectScreen_ListPos,d1
+    cmp.b   #5,d0
+    ble.s   @ok
+    move.b  #5,d0
+
+@ok subq.b  #1,d0
+    cmp.b   d0,d1
+    bge.s   @rts
+
+    addq.b  #1,vWifiSelectScreen_ListPos
+    bra     @redraw
+
+@down
+    btst    #iDown,Joypad+Press
+    beq.s   @rts
+    tst.b   vWifiSelectScreen_ListPos
+    beq.s   @rts
+    sub.b   #1,vWifiSelectScreen_ListPos
+    bra     @redraw
+
+    bra     @redraw
+
+
+@redraw
+    subq.b  #4,vWifiSelectScreen_Action
+
+@rts
     rts
 
 ; ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 ; Inputs:
 ; d7.w - VRAM addr
 ; d5.w - current width of plane
+; d3.w - map offset
 ; a6.l - string location
 ;
 ; !! CORRUPTS D0 !!
@@ -14,6 +15,7 @@ DrawText:
 
 @loop
     moveq   #0,d0
+    move.w  d3,d0
 
     move.b  (a6)+,d0
     beq.s   @rts
