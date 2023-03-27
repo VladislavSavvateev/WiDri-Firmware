@@ -183,7 +183,7 @@ GameClrRAM:
 	bsr.w	SoundDriverLoad
 	jsr		UpdateMusic
 	bsr.w	JoypadInit
-	move.b	#1,($FFFFF600).w ; set Game Mode to Sega Screen
+	move.b	#2,($FFFFF600).w ; set Game Mode to Sega Screen
 
     move.b  #$81,d0
     jsr     PlaySound
@@ -202,31 +202,38 @@ MainGameLoop:
 GameScreens:
 	dc.l	LogoScreen		; Logo Screen
 	dc.l	WifiSelectScreen
+	dc.l	WifiPasswordInputScreen
 
 ; =========================================================
 ; Game Screens
 ; =========================================================
 	include "_screens/LogoScreen.asm"
 	include "_screens/WifiSelectScreen.asm"
+	include	"_screens/WifiPasswordInputScreen.asm"
 
 ; =========================================================
 ; Common
 ; =========================================================
-Font_Art:	incbin "artunc/font.bin"
+Font_Art:		incbin "artunc/font.bin"
 Font_Art_End:
 
-Pal_Main:	incbin "palette/main.bin"
+Pal_Main:		incbin "palette/main.bin"
 Pal_Main_End:
 
-Art_BG:		incbin "artunc/bg.bin"
+Art_BG:			incbin "artunc/bg.bin"
 Art_BG_End:
-Map_BG:		incbin "mapunc/bg.bin"
+Map_BG:			incbin "mapunc/bg.bin"
 Map_BG_End:	
 
-Art_List:	incbin	"artunc/list.bin"
+Art_List:		incbin	"artunc/list.bin"
 Art_List_End:
-Map_List:	incbin	"mapunc/list.bin"
+Map_List:		incbin	"mapunc/list.bin"
 Map_List_End:
+
+Art_Keyboard:	incbin	"artunc/keyboard.bin"
+Art_Keyboard_End:
+Map_Keyboard:	incbin	"mapunc/keyboard.bin"
+Map_Keyboard_End:
 
 ; =========================================================
 ; Strings

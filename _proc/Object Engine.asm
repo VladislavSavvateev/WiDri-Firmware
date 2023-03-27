@@ -228,6 +228,7 @@ AnimateSprite:
 ObjectOffsets:
 	dc.l	LogoEye
 	dc.l	Obj_Lock
+	dc.l	Obj_Keyboard
 
 		
 ; =====================================================================
@@ -235,3 +236,4 @@ ObjectOffsets:
 ; =====================================================================
 	include "_obj/LogoEye.asm"
 	include "_obj/Lock.asm"
+	include "_obj/Keyboard.asm"
