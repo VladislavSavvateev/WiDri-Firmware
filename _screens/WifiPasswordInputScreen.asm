@@ -7,6 +7,7 @@ vWifiPasswordInputScreen_Timer  equ $FFFF6001   ; b
 vWPI_FontOff    equ $0000
 vWPI_BgOff      equ vWSS_FontOff+(Font_Art_End-Font_Art)
 vWPI_KbOff      equ vWPI_BgOff+(Art_BG_End-Art_BG)
+vWPI_KbdHovOff  equ vWPI_KbOff+(Art_Keyboard_End-Art_Keyboard)
 
 WifiPasswordInputScreen:   
     lea		$C00004,a6	; load VDP
@@ -38,8 +39,16 @@ WifiPasswordInputScreen:
     ; load keyboard mappings
     drawMap Map_Keyboard, Map_Keyboard_End, 512, $C000, 0, 14, 320, vWPI_KbOff/32
 
+    ; load keyboard hover GFX
+    loadArt Art_KbdHover, Art_KbdHover__End, vWPI_KbdHovOff
+
     jsr     FindFreeObject
     move.b  #3,(a0)
+
+    jsr     FindFreeObject
+    move.b  #4,(a0)
+    move.b  #0,$20(a0)
+    move.b  #0,$21(a0)
 
     move.b  #0,vWifiPasswordInputScreen_Action    ; and set the timer
     move.b  #2,vWifiPasswordInputScreen_Timer    ; and set the timer
