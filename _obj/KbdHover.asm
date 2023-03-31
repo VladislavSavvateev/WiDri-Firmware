@@ -6,6 +6,7 @@
 ; ===================================================================
 iShift  equ 0
 iSym    equ 1
+iEnter  equ 2
 
 Obj_KbdHover:
     moveq   #0,d0
@@ -164,52 +165,62 @@ Obj_KbdHover__R1:
     dc.w    $80+40+24*0, $80+128    ; key pos
     dc.b    '1'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '1'                     ; SYM value
 
     dc.w    $80+40+24*1, $80+128    ; key pos
     dc.b    '2'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '2'                     ; SYM value
 
     dc.w    $80+40+24*2, $80+128    ; key pos
     dc.b    '3'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '3'                     ; SYM value
 
     dc.w    $80+40+24*3, $80+128    ; key pos
     dc.b    '4'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '4'                     ; SYM value
 
     dc.w    $80+40+24*4, $80+128    ; key pos
     dc.b    '5'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '5'                     ; SYM value
 
     dc.w    $80+40+24*5, $80+128    ; key pos
     dc.b    '6'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '6'                     ; SYM value
 
     dc.w    $80+40+24*6, $80+128    ; key pos
     dc.b    '7'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '7'                     ; SYM value
 
     dc.w    $80+40+24*7, $80+128    ; key pos
     dc.b    '8'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '8'                     ; SYM value
 
     dc.w    $80+40+24*8, $80+128    ; key pos
     dc.b    '9'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '9'                     ; SYM value
 
     dc.w    $80+40+24*9, $80+128    ; key pos
     dc.b    '0'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '0'                     ; SYM value
 
 Obj_KbdHover__R2:
     dc.w    10      ; keys count
@@ -217,52 +228,62 @@ Obj_KbdHover__R2:
     dc.w    $80+40+24*0, $80+128+16 ; key pos
     dc.b    'q'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '@'                     ; SYM value
 
     dc.w    $80+40+24*1, $80+128+16 ; key pos
     dc.b    'w'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '#'                     ; SYM value
 
     dc.w    $80+40+24*2, $80+128+16 ; key pos
     dc.b    'e'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '$'                     ; SYM value
 
     dc.w    $80+40+24*3, $80+128+16 ; key pos
     dc.b    'r'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '_'                     ; SYM value
 
     dc.w    $80+40+24*4, $80+128+16 ; key pos
     dc.b    't'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '&'                     ; SYM value
 
     dc.w    $80+40+24*5, $80+128+16 ; key pos
     dc.b    'y'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '-'                     ; SYM value
 
     dc.w    $80+40+24*6, $80+128+16 ; key pos
     dc.b    'u'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '+'                     ; SYM value
 
     dc.w    $80+40+24*7, $80+128+16 ; key pos
     dc.b    'i'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '('                     ; SYM value
 
     dc.w    $80+40+24*8, $80+128+16 ; key pos
     dc.b    'o'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    ')'                     ; SYM value
 
     dc.w    $80+40+24*9, $80+128+16 ; key pos
     dc.b    'p'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '/'                     ; SYM value
 
 Obj_KbdHover__R3:
     dc.w    9   ; keys count
@@ -270,47 +291,56 @@ Obj_KbdHover__R3:
     dc.w    $80+48+24*0, $80+128+32 ; key pos
     dc.b    'a'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '*'                     ; SYM value
 
     dc.w    $80+48+24*1, $80+128+32 ; key pos
     dc.b    's'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    $22                     ; SYM value
 
     dc.w    $80+48+24*2, $80+128+32 ; key pos
     dc.b    'd'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    $27                     ; SYM value
 
     dc.w    $80+48+24*3, $80+128+32 ; key pos
     dc.b    'f'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    ':'                     ; SYM value
 
     dc.w    $80+48+24*4, $80+128+32 ; key pos
     dc.b    'g'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    ';'                     ; SYM value
 
     dc.w    $80+48+24*5, $80+128+32 ; key pos
     dc.b    'h'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '!'                     ; SYM value
 
     dc.w    $80+48+24*6, $80+128+32 ; key pos
     dc.b    'j'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '?'                     ; SYM value
 
     dc.w    $80+48+24*7, $80+128+32 ; key pos
     dc.b    'k'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '%'                     ; SYM value
 
     dc.w    $80+48+24*8, $80+128+32 ; key pos
     dc.b    'l'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '='                     ; SYM value
 
 Obj_KbdHover__R4:
     dc.w    9   ; keys count
@@ -318,43 +348,50 @@ Obj_KbdHover__R4:
     dc.w    $80+40, $80+128+48      ; key pos
     dc.b    ' '                     ; key val
     dc.b    2                       ; frame
-    dc.b    %00000001               ; flags (reserved)
+    dc.b    1<<iShift               ; flags (reserved)
     dc.b    0                       ; flags (reserved)
 
     dc.w    $80+80+24*0, $80+128+48 ; key pos
     dc.b    'z'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '<'                     ; SYM value
 
     dc.w    $80+80+24*1, $80+128+48 ; key pos
     dc.b    'x'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '>'                     ; SYM value
 
     dc.w    $80+80+24*2, $80+128+48 ; key pos
     dc.b    'c'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '{'                     ; SYM value
 
     dc.w    $80+80+24*3, $80+128+48 ; key pos
     dc.b    'v'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '|'                     ; SYM value
 
     dc.w    $80+80+24*4, $80+128+48 ; key pos
     dc.b    'b'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '}'                     ; SYM value
 
     dc.w    $80+80+24*5, $80+128+48 ; key pos
     dc.b    'n'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '~'                     ; SYM value
 
     dc.w    $80+80+24*6, $80+128+48 ; key pos
     dc.b    'm'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '^'                     ; SYM value
 
     dc.w    $80+80+24*7, $80+128+48 ; key pos
     dc.b    ' '                     ; key val
@@ -367,28 +404,32 @@ Obj_KbdHover__R5:
     dc.w    $80+40, $80+128+64      ; key pos
     dc.b    ' '                     ; key val
     dc.b    2                       ; frame
-    dc.b    %00000010               ; flags (reserved)
+    dc.b    1<<iSym                 ; flags (reserved)
     dc.b    0                       ; flags (reserved)
 
     dc.w    $80+80+24*0, $80+128+64 ; key pos
     dc.b    ','                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    ','                     ; SYM value
 
     dc.w    $80+80+24*1, $80+128+64 ; key pos
     dc.b    ' '                     ; key val
     dc.b    3                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    ' '                     ; SYM value
 
     dc.w    $80+48+24*7, $80+128+64 ; key pos
     dc.b    '.'                     ; key val
     dc.b    0                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
+    dc.b    '.'                     ; SYM value
 
     dc.w    $80+48+24*8, $80+128+64 ; key pos
     dc.b    ' '                     ; key val
     dc.b    2                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    1<<iEnter               ; flags (reserved)
+    dc.b    ' '                     ; SYM value
 
 ; ===================================================================
 ; GFX
