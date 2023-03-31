@@ -2,7 +2,11 @@
 ; Keyboard Hover Object
 ; $20.b - X-pos (based on keys)
 ; $21.b - Y-pos (based on keys)
+; $22.l - keyboard object
 ; ===================================================================
+iShift  equ 0
+iSym    equ 1
+
 Obj_KbdHover:
     moveq   #0,d0
     move.b  1(a0),d0
@@ -20,27 +24,54 @@ Obj_KbdHover__rSetup:
     move.w  #(vWPI_KbdHovOff/32),2(a0)
     move.l  #Map_KbdHover,4(a0)
 
+    move.b  #3,d0
+    jsr     FindObject
+    move.l  a1,$22(a0)
+; -------------------------------------------------------------------
 Obj_KbdHover__rRecalcPos:
-    moveq   #0,d0
-    move.b  $21(a0),d0
-    lsl.l   #2,d0
-    add.l   #Obj_KbdHover__Rows,d0
-    move.l  d0,a1
-    move.l  (a1),a1
-
-    move.w  (a1)+,d0        ; skip key count (it should be pre-validated!)
-
-    moveq   #0,d0
-    move.b  $20(a0),d0
-    lsl.l   #3,d0
-    add.l   d0,a1
+    jsr     Obj_KbdHover__JumpToKey
 
     move.w  (a1)+,8(a0)         ; X-pos
     move.w  (a1)+,$C(a0)        ; Y-pos
     move.b  (a1)+,d0            ; skip value
     move.b  (a1)+,$10(a0)       ; frame
-
+; -------------------------------------------------------------------
 Obj_KbdHover__rControl:
+    move.b  Joypad+Press,d0
+    andi.b  #A+B+C,d0
+    beq.s   @right
+
+    jsr     Obj_KbdHover__JumpToKey
+    move.b  4(a1),d0    ; value
+    move.b  6(a1),d1    ; get flags
+    move.l  $22(a0),a1
+
+    btst    #iShift,d1
+    beq.s   @symCheck
+
+    tst.b   $10(a1)
+    beq.s   @changeToShift
+    move.b  #0,$10(a1)
+    jmp     @right
+
+@changeToShift
+    move.b  #1,$10(a1)
+    jmp     @right
+
+
+@symCheck
+    btst    #iSym,d1
+    beq.s   @right
+
+    cmp.b   #2,$10(a1)
+    beq.s   @changeToNormal
+    move.b  #2,$10(a1)
+    jmp     @right
+
+@changeToNormal
+    move.b  #0,$10(a1)
+
+@right
     btst    #iRight,Joypad+Press
     beq.s   @left
     addq.b  #1,$20(a0)
@@ -89,6 +120,22 @@ Obj_KbdHover__rControl:
     subq.b  #2,1(a0)
 @rts
     rts
+; -------------------------------------------------------------------
+Obj_KbdHover__JumpToKey:
+    moveq   #0,d0
+    move.b  $21(a0),d0
+    lsl.l   #2,d0
+    add.l   #Obj_KbdHover__Rows,d0
+    move.l  d0,a1
+    move.l  (a1),a1
+
+    move.w  (a1)+,d0        ; skip key count (it should be pre-validated!)
+
+    moveq   #0,d0
+    move.b  $20(a0),d0
+    lsl.l   #3,d0
+    add.l   d0,a1
+    rts
 ; ===================================================================
 ; Keys position
 ; ===================================================================
@@ -99,6 +146,18 @@ Obj_KbdHover__Rows:
     dc.l    Obj_KbdHover__R4
     dc.l    Obj_KbdHover__R5
 ; -------------------------------------------------------------------
+
+; flags:
+; %abcdefgh
+;   a -
+;   b - 
+;   c -
+;   d -
+;   e -
+;   f -
+;   g - works as a SYM key
+;   h - works as a SHIFT key
+
 Obj_KbdHover__R1:
     dc.w    10      ; keys count
 
@@ -259,7 +318,8 @@ Obj_KbdHover__R4:
     dc.w    $80+40, $80+128+48      ; key pos
     dc.b    ' '                     ; key val
     dc.b    2                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    %00000001               ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
 
     dc.w    $80+80+24*0, $80+128+48 ; key pos
     dc.b    'z'                     ; key val
@@ -299,7 +359,7 @@ Obj_KbdHover__R4:
     dc.w    $80+80+24*7, $80+128+48 ; key pos
     dc.b    ' '                     ; key val
     dc.b    1                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.w    0                       ; flags
 
 Obj_KbdHover__R5:
     dc.w    5   ; keys count
@@ -307,7 +367,8 @@ Obj_KbdHover__R5:
     dc.w    $80+40, $80+128+64      ; key pos
     dc.b    ' '                     ; key val
     dc.b    2                       ; frame
-    dc.w    0                       ; flags (reserved)
+    dc.b    %00000010               ; flags (reserved)
+    dc.b    0                       ; flags (reserved)
 
     dc.w    $80+80+24*0, $80+128+64 ; key pos
     dc.b    ','                     ; key val

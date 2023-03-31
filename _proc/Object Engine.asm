@@ -40,6 +40,25 @@ FindFreeObject:
 @rts	rts						; return
 
 ; =====================================================================
+; FindObject - function for object in the RAM
+; Arguments:	d0 - Object ID
+; Return:		a1 - offset in RAM
+; =====================================================================
+FindObject:
+		lea		$FFFF8000,a1	; load object RAM
+		moveq	#0,d7			; clear d7
+		move.l	#79,d7			; set number of max objects - 1
+@loop:
+		moveq	#0,d1			; clear d0
+		move.b	(a1),d1			; get object ID
+		cmp.b	d0,d1			; it's the needed object?
+		beq.s	@rts			; if ID = 0, exit proc
+		lea		$40(a1),a0		; next object
+		dbf		d7,@loop		; if it's last object, exit loop 
+		move.l	#0,a1
+@rts	rts	
+
+; =====================================================================
 ; FindFreeSprite - function for find free space in Sprite RAM
 ; Arguments:	none
 ; Return:		a1 - offset in RAM
