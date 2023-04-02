@@ -1,8 +1,10 @@
 ; =========================================================
 ; WiFi AP Password input Screen
 ; =========================================================
-vWifiPasswordInputScreen_Action equ $FFFF6000   ; b
-vWifiPasswordInputScreen_Timer  equ $FFFF6001   ; b
+vWifiPasswordInputScreen_Action         equ $FFFF6000   ; b
+vWifiPasswordInputScreen_Timer          equ $FFFF6001   ; b
+vWifiPasswordInputScreen_PasswordBuffer equ $FFFF6002   ; 64 bytes
+vWifiPasswordInputScreen_PasswordPos    equ $FFFF6042   ; b
 
 vWPI_FontOff    equ $0000
 vWPI_BgOff      equ vWSS_FontOff+(Font_Art_End-Font_Art)
@@ -51,8 +53,16 @@ WifiPasswordInputScreen:
     move.b  #0,$21(a0)
     move.l  #WifiPasswordInputScreen_KeyboardCallback,$26(a0)
 
-    move.b  #0,vWifiPasswordInputScreen_Action    ; and set the timer
-    move.b  #2,vWifiPasswordInputScreen_Timer    ; and set the timer
+    move.b  #0,vWifiPasswordInputScreen_Action  ; set current action
+    move.b  #2,vWifiPasswordInputScreen_Timer   ; set timer for pal fade
+    
+    moveq   #64/4-1,d0
+    lea     vWifiPasswordInputScreen_PasswordBuffer,a0
+@clearBuf
+    move.l  #0,(a0)+
+    dbf     d0,@clearBuf
+
+    move.b  #0,vWifiPasswordInputScreen_PasswordPos
 
 @loop
 	move.b	#2,($FFFFF62A).w
@@ -65,6 +75,42 @@ WifiPasswordInputScreen:
 	jmp		@loop
 
 WifiPasswordInputScreen_KeyboardCallback:
+    moveq   #0,d1
+    move.b  vWifiPasswordInputScreen_PasswordPos,d1
+    move.l  #vWifiPasswordInputScreen_PasswordBuffer,a1
+    add.l   d1,a1
+
+    cmp.b   #$20,d0
+    bge.s   @normalSymbol
+
+    cmp.b   #8,d0           ; backspace?
+    bne.s   @enter
+    tst.b   d1
+    beq.s   @rts
+    move.b  #0,-1(a1)
+    subq.b  #1,vWifiPasswordInputScreen_PasswordPos
+
+    jmp     @redraw
+
+@enter
+    cmp.b   #$A,d0          ; enter?
+    bne.s   @rts
+
+    jmp     @rts
+
+@normalSymbol
+    cmp.b   #64,d1
+    beq.s   @rts
+    move.b  d0,(a1)
+    addq.b  #1,vWifiPasswordInputScreen_PasswordPos
+
+@redraw
+    clearRect   512, $C000, 0, 0, 320, 8, 0
+    move.w  #$C000,d7
+    move.w  #0,d3
+    move.l  #vWifiPasswordInputScreen_PasswordBuffer,a6
+    jmp     DrawText
+@rts
     rts
 
 ; =========================================================
