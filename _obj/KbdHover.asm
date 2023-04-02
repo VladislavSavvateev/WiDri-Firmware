@@ -46,6 +46,9 @@ Obj_KbdHover__rControl:
     andi.b  #A+B+C,d0
     beq.w   @right
 
+    move.b  #$A0,d0
+    jsr     PlaySound
+
     jsr     Obj_KbdHover__JumpToKey
     move.b  4(a1),d0    ; value
     move.b  6(a1),d1    ; get flags

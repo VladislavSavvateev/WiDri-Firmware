@@ -60,7 +60,7 @@ ptr_sndD0:	dc.l SoundD0
 		dc.l SoundD6
 		dc.l SoundD7
 
-SoundA0:	incbin	sound\soundA0.bin
+SoundA0:	include	"sound\Sound - Keyboard Click.asm"
 		even
 SoundA1:	incbin	sound\soundA1.bin
 		even
