@@ -49,6 +49,7 @@ WifiPasswordInputScreen:
     move.b  #4,(a0)
     move.b  #0,$20(a0)
     move.b  #0,$21(a0)
+    move.l  #WifiPasswordInputScreen_KeyboardCallback,$26(a0)
 
     move.b  #0,vWifiPasswordInputScreen_Action    ; and set the timer
     move.b  #2,vWifiPasswordInputScreen_Timer    ; and set the timer
@@ -62,6 +63,10 @@ WifiPasswordInputScreen:
     jsr     WifiPasswordInputScreen_Loop
 
 	jmp		@loop
+
+WifiPasswordInputScreen_KeyboardCallback:
+    rts
+
 ; =========================================================
 ; Main Loop
 ; =========================================================
