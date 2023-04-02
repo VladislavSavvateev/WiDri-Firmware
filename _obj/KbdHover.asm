@@ -4,6 +4,8 @@
 ; $21.b - Y-pos (based on keys)
 ; $22.l - keyboard object
 ; $26.l - callback for values
+; $2A.w - SHIFT SYM art pos
+; $2C.w - keyboard art pos
 ; ===================================================================
 iShift          equ 0
 iSym            equ 1
@@ -53,13 +55,14 @@ Obj_KbdHover__rControl:
     btst    #iShift,d1
     beq.s   @symCheck
 
-    tst.b   $10(a1)
-    beq.s   @changeToShift
-    move.b  #0,$10(a1)
-    jmp     @right
+    cmp.b   #1,$10(a1)
+    bne.s   @changeToShift
+    jmp     @changeToNormal
 
 @changeToShift
     move.b  #1,$10(a1)
+    jsr     Obj_KbdHover__ShowShiftActivated
+    jsr     Obj_KbdHover__ShowSymDeactivated
     jmp     @right
 
 
@@ -70,6 +73,14 @@ Obj_KbdHover__rControl:
     cmp.b   #2,$10(a1)
     beq.s   @changeToNormal
     move.b  #2,$10(a1)
+    jsr     Obj_KbdHover__ShowSymActivated
+    jsr     Obj_KbdHover__ShowShiftDeactivated
+    jmp     @right
+
+@changeToNormal
+    move.b  #0,$10(a1)
+    jsr     Obj_KbdHover__ShowSymDeactivated
+    jsr     Obj_KbdHover__ShowShiftDeactivated
     jmp     @right
 ; -------------------------------------------------------------------
 @symbolCallback
@@ -89,9 +100,6 @@ Obj_KbdHover__rControl:
     move.l  $26(a0),a1
     jsr     (a1)            ; call callback
 ; -------------------------------------------------------------------
-@changeToNormal
-    move.b  #0,$10(a1)
-
 @right
     btst    #iRight,Joypad+Press
     beq.s   @left
@@ -156,6 +164,20 @@ Obj_KbdHover__JumpToKey:
     move.b  $20(a0),d0
     lsl.l   #3,d0
     add.l   d0,a1
+    rts
+; -------------------------------------------------------------------
+Obj_KbdHover__ShowShiftActivated:  
+    drawMapInObj    Map_Shift, Map_Shift_End, 512, $C000, 5, 22, 40, $2A(a0)
+    rts
+Obj_KbdHover__ShowSymActivated:  
+    drawMapInObj    Map_Sym, Map_Sym_End, 512, $C000, 5, 24, 40, $2A(a0)
+    rts
+
+Obj_KbdHover__ShowShiftDeactivated:  
+    drawMapInObj    Map_ShiftDeactivated, Map_ShiftDeactivated_End, 512, $C000, 5, 22, 40, $2C(a0)
+    rts
+Obj_KbdHover__ShowSymDeactivated:  
+    drawMapInObj    Map_SymDeactivated, Map_SymDeactivated_End, 512, $C000, 5, 24, 40, $2C(a0)
     rts
 ; ===================================================================
 ; Keys position

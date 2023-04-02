@@ -235,6 +235,17 @@ Art_Keyboard_End:
 Map_Keyboard:	incbin	"mapunc/keyboard.bin"
 Map_Keyboard_End:
 
+Art_ShiftSym:	incbin	"artunc/shift_sym.bin"
+Art_ShiftSym_End:
+Map_Shift:		incbin	"mapunc/shift.bin"
+Map_Shift_End:
+Map_Sym:		incbin	"mapunc/sym.bin"
+Map_Sym_End:
+Map_ShiftDeactivated:	incbin	"mapunc/shift_deactivated.bin"
+Map_ShiftDeactivated_End:
+Map_SymDeactivated:		incbin	"mapunc/sym_deactivated.bin"
+Map_SymDeactivated_End:
+
 ; =========================================================
 ; Strings
 ; =========================================================

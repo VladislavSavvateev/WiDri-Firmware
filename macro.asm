@@ -249,6 +249,43 @@ drawMap	macro map_off, map_end, cur_width, base, x, y, width, flags
 	endm
 
 ; ---------------------------------------------------------------------
+; Macro to draw raw mapping to the VRAM
+; Input:
+;	map_off 	- start of mapping
+; 	map_end		- end of mapping
+;	cur_width	- current width of the VDP plane
+; 	base 		- base address in VRAM
+;	x 			- x pos of tile
+;	y 			- y pos of tile to draw
+;	width 		- width of the plane
+; 	flags 		- addition to the tile word (such as start tile, palette row, flips and priority)
+; ---------------------------------------------------------------------
+drawMapInObj	macro map_off, map_end, cur_width, base, x, y, width, flags
+	lea     \map_off,a1
+    moveq   #0,d0
+    move.w  #(\map_end-\map_off)/2-1,d0
+    moveq   #\width/8,d2
+	move.w	#(\base+\y*(\cur_width/4)+\x*2),d7
+	jsr		Req_W_VRAM
+@\map_off\__MapLoop
+		move.w  (a1)+,d1
+		add.w   \flags,d1
+		move.w  d1,$C00000
+
+		sub.b   #1,d2
+		bne.s   @\map_off\__lml_dbf
+
+@\map_off\__empty_tiles
+		add.w	#(\cur_width/4),d7
+		jsr		Req_W_VRAM
+
+    	moveq   #\width/8,d2
+
+@\map_off\__lml_dbf
+    dbf     d0,@\map_off\__MapLoop
+	endm
+
+; ---------------------------------------------------------------------
 ; Macro to move pal from one addr to another
 ; Inputs:
 ;	pal_off - start of pal
