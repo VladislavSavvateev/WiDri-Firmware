@@ -5,6 +5,7 @@ vWifiSelectScreen_Action            equ $FFFF6000   ; b
 vWifiSelectScreen_Timer             equ $FFFF6001   ; b
 vWifiSelectScreen_ListOffset        equ $FFFF6002   ; b
 vWifiSelectScreen_ListPos           equ $FFFF6003   ; b
+vWifiSelectScreen_ExitFromScreen    equ $FFFF6004   ; b
 vWifiSelectScreen_FoundWifiAPs      equ $FFFF6010   ; unknown size
 
 vWSS_FontOff    equ $0000
@@ -74,6 +75,7 @@ WifiSelectScreen:
     ; reset vars
     move.b  #0,vWifiSelectScreen_Action
     move.b  #2,vWifiSelectScreen_Timer
+    move.b  #0,vWifiSelectScreen_ExitFromScreen
 
 @loop
 	move.b	#2,($FFFFF62A).w
@@ -83,7 +85,9 @@ WifiSelectScreen:
 	jsr		ObjectRun
     jsr     WifiSelectScreen_Loop
 
-	jmp		@loop
+    tst.b   vWifiSelectScreen_ExitFromScreen
+    beq.s   @loop
+    rts
 ; =========================================================
 ; Main Loop
 ; =========================================================
@@ -97,7 +101,6 @@ WifiSelectScreen_LoopActions:
     dc.w    WifiSelectScreen_Wait-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_PalFadeIn-WifiSelectScreen_LoopActions
 
-    dc.w    WifiSelectScreen_CheckForArduino-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_SendSearchReq-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_CheckForSearchEnd_1-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_CheckForSearchEnd_2-WifiSelectScreen_LoopActions
@@ -120,7 +123,7 @@ WifiSelectScreen_Wait:
     addq.b  #2,vWifiSelectScreen_Action
 @rts
     rts
-    
+; ---------------------------------------------------------------------------
 WifiSelectScreen_PalFadeIn:
     addq.b  #2,vWifiSelectScreen_Action   ; pre-move to the next action
 
@@ -135,33 +138,24 @@ WifiSelectScreen_PalFadeIn:
     move.b  #2,vWifiSelectScreen_Timer    ; and set the timer
 @rts
     rts
-
-WifiSelectScreen_CheckForArduino:
-    move.w  $B00004,d0
-    move.w  $B00004,d0
-    cmp.w   #1337,d0
-    bne.s   @rts
-    addq.b  #2,vWifiSelectScreen_Action
-@rts
-    rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_SendSearchReq:             ; sending wifi.search
     move.b  #7,$B00000
     addq.b  #2,vWifiSelectScreen_Action
     rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_CheckForSearchEnd_1:       ; sending wifi.found_ap_count
     addq.b  #2,vWifiSelectScreen_Action
     move.b  #9,$B00000
     rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_CheckForSearchEnd_2:       ; checking for anything in the buffer
     move.w  $B00002,d0
     beq.s   @rts
     addq.b  #2,vLogoScreen_Action
 @rts
     rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_CheckForSearchEnd_3:       ; checking for the SCAN_COMPLETE
     move.b  $B00000,d0
     bmi.s   @notComplete            ; -1 and -2 are not success statuses
@@ -171,21 +165,20 @@ WifiSelectScreen_CheckForSearchEnd_3:       ; checking for the SCAN_COMPLETE
 @notComplete
     subq.b  #4,vLogoScreen_Action
     rts
-
 ; ---------------------------------------------------------------------------
 
 WifiSelectScreen_GettingListOfAPs_1:       ; sending wifi.get_scan_results
     move.b  #8,$B00000
     addq.b  #2,vLogoScreen_Action
     rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_GettingListOfAPs_2:
     move.w  $B00002,d0
     beq.s   @rts
     addq.b  #2,vLogoScreen_Action
 @rts
     rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_GettingListOfAPs_3:
     addq.b  #2,vLogoScreen_Action
 
@@ -224,14 +217,23 @@ WifiSelectScreen_GettingListOfAPs_3:
         dbf     d0,@apLoop
     
     rts
-
 ; ---------------------------------------------------------------------------
-
 WifiSelectScreen_ClearList:
     addq.b  #2,vWifiSelectScreen_Action
     clearRect 512, $C000, 48, 56, 224, 120, 0
-    rts
 
+@clearLocks
+    move.b  #2,d0
+    jsr     FindObject
+    move.l  a1,d1
+    tst.l   d1
+    beq.s   @rts
+    move.b  #0,(a1)
+    bra     @clearLocks
+
+@rts
+    rts
+; ---------------------------------------------------------------------------
 WifiSelectScreen_DrawList:
     addq.b  #2,vWifiSelectScreen_Action
 
@@ -285,11 +287,42 @@ WifiSelectScreen_DrawList:
     dbf     d1,@apLoop
 
     rts
-
+; ---------------------------------------------------------------------------
 WifiSelectScreen_Control:
     btst    #iUp,Joypad+Press   
-    beq.s   @down
+    bne.s   WifiSelectScreen_Control__Up
 
+    btst    #iDown,Joypad+Press
+    bne.w   WifiSelectScreen_Control__Down
+
+    move.b  Joypad+Press,d0
+    andi.b  #A+B+C+Start,d0
+    bne.s   WifiSelectScreen_Control__MoveToInputScreen
+
+    rts
+; ---------------------------------------------------------------------------
+WifiSelectScreen_Control__Down:
+    tst.b   vWifiSelectScreen_ListPos
+    beq.s   @addToOffset
+    sub.b   #1,vWifiSelectScreen_ListPos
+    bra     @redraw
+
+@addToOffset
+    move.b  vWifiSelectScreen_FoundWifiAPs,d0
+    sub.b   #5,d0
+    bmi.s   @rts
+    move.b  vWifiSelectScreen_ListOffset,d1
+    cmp.b   d0,d1
+    beq.s   @rts
+    addq.b  #1,vWifiSelectScreen_ListOffset
+
+@redraw
+    subq.b  #4,vWifiSelectScreen_Action
+
+@rts   
+    rts
+; ---------------------------------------------------------------------------
+WifiSelectScreen_Control__Up:
     moveq   #0,d0
     moveq   #0,d1
     move.b  vWifiSelectScreen_FoundWifiAPs,d0
@@ -310,36 +343,59 @@ WifiSelectScreen_Control:
     tst.b   vWifiSelectScreen_ListOffset
     beq.s   @rts
     subq.b  #1,vWifiSelectScreen_ListOffset
-    bra     @redraw
-
-
-@down
-    btst    #iDown,Joypad+Press
-    beq.s   @rts
-    tst.b   vWifiSelectScreen_ListPos
-    beq.s   @addToOffset
-    sub.b   #1,vWifiSelectScreen_ListPos
-    bra     @redraw
-
-@addToOffset
-    move.b  vWifiSelectScreen_FoundWifiAPs,d0
-    sub.b   #5,d0
-    bmi.s   @rts
-    move.b  vWifiSelectScreen_ListOffset,d1
-    cmp.b   d0,d1
-    beq.s   @rts
-    addq.b  #1,vWifiSelectScreen_ListOffset
-
 
 @redraw
     subq.b  #4,vWifiSelectScreen_Action
 
 @rts
     rts
-
 ; ---------------------------------------------------------------------------
+WifiSelectScreen_Control__MoveToInputScreen:
+    move.b  #2,$FFFFF600
+    lea     vWifiSelectScreen_FoundWifiAPs,a6   ; loading found APs
+    moveq   #0,d0
+    moveq   #0,d1
+    move.b  (a6)+,d1        ; APs count
+    move.b  vWifiSelectScreen_ListOffset,d0
+    beq.s   @moveSkipOffset
+    subq.b  #1,d0
 
+@moveOffsetLoop
+        move.b  (a6)+,d2
+        bne.s   @moveOffsetLoop
 
+    dbf     d0,@moveOffsetLoop
+    move.b  #5,d1
+
+@moveSkipOffset 
+    cmp.b   #5,d1       ; check if networks more than 5
+    ble.s   @moveOkCount    ; if not, branch
+    move.b  #5,d1       ; else limit loop counter to 5
+
+@moveOkCount
+    subq.b  #1,d1                           ; decrement loop counter for dbf
+@apLoop
+        move.b  vWifiSelectScreen_ListPos,d3
+        cmp.b   d1,d3
+        bne.s   @skip
+
+        lea     vWifiPasswordInputScreen_SelectedSSID,a0
+@ssidLoop
+            move.b  (a6)+,(a0)+
+            bne.s   @ssidLoop
+        move.b  #1,vWifiSelectScreen_ExitFromScreen
+        bra.s   @rts
+
+@skip
+            move.b  (a6)+,d0
+            bne.s   @skip
+        move.b  (a6)+,d0   ; set sec byte
+
+    dbf     d1,@apLoop
+
+@rts
+    rts
+; ---------------------------------------------------------------------------
 WifiSelectScreen_LoopEnd:
     rts
 

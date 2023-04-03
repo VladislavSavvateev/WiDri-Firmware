@@ -6,6 +6,8 @@ vWifiPasswordInputScreen_Timer          equ $FFFF6001   ; b
 vWifiPasswordInputScreen_PasswordBuffer equ $FFFF6002   ; 64 bytes
 vWifiPasswordInputScreen_PasswordPos    equ $FFFF6042   ; b
 
+vWifiPasswordInputScreen_SelectedSSID   equ $FFFF7000   ; idk, zero-based
+
 vWPI_FontOff        equ $0000
 vWPI_BgOff          equ vWSS_FontOff+(Font_Art_End-Font_Art)
 vWPI_KbOff          equ vWPI_BgOff+(Art_BG_End-Art_BG)
@@ -13,6 +15,10 @@ vWPI_KbdHovOff      equ vWPI_KbOff+(Art_Keyboard_End-Art_Keyboard)
 vWPI_ShiftSymOff    equ vWPI_KbdHovOff+(Art_KbdHover__End-Art_KbdHover)
 
 WifiPasswordInputScreen:   
+    jsr     Pal_FadeFrom
+
+    clearRect   512, $C000, 0, 0, 320, 224, 0
+
     lea		$C00004,a6	; load VDP
 	move.w	#$8004,(a6)	; Reg#00: H-Int disabled, line counter disabled
 	move.w	#$8174,(a6)	; Reg#01: DISPLAY on, V-Int enabled, DMA on, 224
@@ -58,6 +64,12 @@ WifiPasswordInputScreen:
     move.l  #WifiPasswordInputScreen_KeyboardCallback,$26(a0)
     move.w  #vWPI_ShiftSymOff/32,$2A(a0)
     move.w  #vWPI_KbOff/32,$2C(a0)
+
+    PosToVRAM   $C000, 0, 1, 512, d7
+    move.w  #512,d5
+    move.w  #0,d3
+    lea     vWifiPasswordInputScreen_SelectedSSID,a6
+    jsr     DrawText
 
     move.b  #0,vWifiPasswordInputScreen_Action  ; set current action
     move.b  #2,vWifiPasswordInputScreen_Timer   ; set timer for pal fade
