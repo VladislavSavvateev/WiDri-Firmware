@@ -1,4 +1,5 @@
-    string SearchingForNetworks, 'Searching for networks...'
+    string NetworkSearch_SearchingForNetworks, 'Searching for networks...'
+    string NetworkSearch_SelectNetwork, 'Select a network'
     
     string Danger, '!!! DANGER !!!'
 

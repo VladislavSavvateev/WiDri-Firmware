@@ -180,7 +180,7 @@ GameClrRAM:
 	move.l	d7,(a6)+
 	dbf	d6,GameClrRAM	; fill RAM ($0000-$FDFF) with $0
 	bsr.w	VDPSetupGame
-	bsr.w	SoundDriverLoad
+	jsr		SoundDriverLoad
 	jsr		UpdateMusic
 	bsr.w	JoypadInit
 	move.b	#1,($FFFFF600).w ; set Game Mode to Sega Screen

@@ -249,6 +249,7 @@ ObjectOffsets:
 	dc.l	Obj_Lock
 	dc.l	Obj_Keyboard
 	dc.l	Obj_KbdHover
+	dc.l	Obj_Icons
 		
 ; =====================================================================
 ; Object Includes
@@ -257,3 +258,4 @@ ObjectOffsets:
 	include "_obj/Lock.asm"
 	include "_obj/Keyboard.asm"
 	include "_obj/KbdHover.asm"
+	include "_obj/Icons.asm"

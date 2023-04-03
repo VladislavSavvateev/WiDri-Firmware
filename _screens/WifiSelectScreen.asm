@@ -11,6 +11,7 @@ vWSS_FontOff    equ $0000
 vWSS_BgOff      equ vWSS_FontOff+(Font_Art_End-Font_Art)
 vWSS_ListOff    equ vWSS_BgOff+(Art_BG_End-Art_BG)
 vWSS_LocksOff   equ vWSS_ListOff+(Art_List_End-Art_List)
+vWSS_IconsOff   equ vWSS_LocksOff+(Art_Lock__End-Art_Lock)
 
 WifiSelectScreen:   
     lea		$C00004,a6	; load VDP
@@ -50,8 +51,23 @@ WifiSelectScreen:
     ; load locks GFX
     loadArt Art_Lock, Art_Lock__End, vWSS_LocksOff
 
-    lea     Str_SearchingForNetworks,a6
+    ; load icons GFX
+    loadArt Art_Icons, Art_Icons__End, vWSS_IconsOff
+
+    lea     Str_NetworkSearch_SearchingForNetworks,a6
     PosToVRAM $C000, 56/8, 112/8, 512, d7
+    move.w  #0,d3
+    jsr     DrawText
+
+    jsr     FindFreeObject
+    move.b  #5,(a0)
+    move.w  #vWSS_IconsOff/32,2(a0)
+    move.w  #$80+56,8(a0)
+    move.w  #$80+16,$C(a0)
+    move.b  #0,$10(a0)
+
+    lea     Str_NetworkSearch_SelectNetwork,a6
+    PosToVRAM   $C000, 96/8, 24/8, 512, d7
     move.w  #0,d3
     jsr     DrawText
 
@@ -282,22 +298,37 @@ WifiSelectScreen_Control:
     ble.s   @ok
     move.b  #5,d0
 
+
 @ok subq.b  #1,d0
     cmp.b   d0,d1
-    bge.s   @rts
+    bge.s   @subFromOffset
 
     addq.b  #1,vWifiSelectScreen_ListPos
     bra     @redraw
+
+@subFromOffset
+    tst.b   vWifiSelectScreen_ListOffset
+    beq.s   @rts
+    subq.b  #1,vWifiSelectScreen_ListOffset
+    bra     @redraw
+
 
 @down
     btst    #iDown,Joypad+Press
     beq.s   @rts
     tst.b   vWifiSelectScreen_ListPos
-    beq.s   @rts
+    beq.s   @addToOffset
     sub.b   #1,vWifiSelectScreen_ListPos
     bra     @redraw
 
-    bra     @redraw
+@addToOffset
+    move.b  vWifiSelectScreen_FoundWifiAPs,d0
+    sub.b   #5,d0
+    bmi.s   @rts
+    move.b  vWifiSelectScreen_ListOffset,d1
+    cmp.b   d0,d1
+    beq.s   @rts
+    addq.b  #1,vWifiSelectScreen_ListOffset
 
 
 @redraw
