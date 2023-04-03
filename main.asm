@@ -183,8 +183,19 @@ GameClrRAM:
 	bsr.w	SoundDriverLoad
 	jsr		UpdateMusic
 	bsr.w	JoypadInit
-	move.b	#2,($FFFFF600).w ; set Game Mode to Sega Screen
+	move.b	#1,($FFFFF600).w ; set Game Mode to Sega Screen
 
+	jsr		ReadJoypads
+
+	move.b	Joypad+Press,d0
+	andi.b	#Left+A+B+C+Start,d0
+    cmp.b   #Left+A+B+C+Start,d0
+	bne.s	@normal
+
+	move.b	#3,$FFFFF600
+	jmp		MainGameLoop
+
+@normal
     move.b  #$81,d0
     jsr     PlaySound
 ; ===========================================================================
@@ -203,6 +214,7 @@ GameScreens:
 	dc.l	LogoScreen		; Logo Screen
 	dc.l	WifiSelectScreen
 	dc.l	WifiPasswordInputScreen
+	dc.l	ClearEEPROMScreen
 
 ; =========================================================
 ; Game Screens
@@ -210,6 +222,7 @@ GameScreens:
 	include "_screens/LogoScreen.asm"
 	include "_screens/WifiSelectScreen.asm"
 	include	"_screens/WifiPasswordInputScreen.asm"
+	include "_screens/ClearEEPROMScreen.asm"
 
 ; =========================================================
 ; Common
@@ -219,6 +232,8 @@ Font_Art_End:
 
 Pal_Main:		incbin "palette/main.bin"
 Pal_Main_End:
+Pal_MainR:		incbin "palette/main_r.bin"
+Pal_MainR_End:
 
 Art_BG:			incbin "artunc/bg.bin"
 Art_BG_End:

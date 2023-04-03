@@ -343,6 +343,10 @@ Str_\name\:
 	if (narg=6)
 		dc.b	\2, \3, \4, \5, \6, 0
 	endc
+
+	if (narg=7)
+		dc.b	\2, \3, \4, \5, \6, \7, 0
+	endc
 Str_\name\_End:
 Str_\name\_Length	equ	Str_\name\_End-Str_\name\
 	endm
