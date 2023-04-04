@@ -197,7 +197,7 @@ ConnectToWiFiScreen_WiFiConnect__ValCheck:
 
     move.b  #0,vConnectToWiFiScreen_Action
     jsr     ConnectToWiFiScreen_ClearStatus
-    PosToVRAM   $C000, 14, 224/16, 512, d7
+    PosToVRAM   $C000, 11, 224/16, 512, d7
     moveq   #0,d3
     lea     Str_ConnectToWiFi_ConnectionFailed,a6
     jmp     DrawText
@@ -222,7 +222,7 @@ ConnectToWiFiScreen_WiFiGetConStatus__ValCheck:
 
     move.b  #0,vConnectToWiFiScreen_Action
     jsr     ConnectToWiFiScreen_ClearStatus
-    PosToVRAM   $C000, 14, 224/16, 512, d7
+    PosToVRAM   $C000, 11, 224/16, 512, d7
     moveq   #0,d3
     lea     Str_ConnectToWiFi_ConnectionFailed,a6
     jmp     DrawText
@@ -230,7 +230,7 @@ ConnectToWiFiScreen_WiFiGetConStatus__ValCheck:
 @good
     move.b  #0,vConnectToWiFiScreen_Action
     jsr     ConnectToWiFiScreen_ClearStatus
-    PosToVRAM   $C000, 14, 224/16, 512, d7
+    PosToVRAM   $C000, 9, 224/16, 512, d7
     moveq   #0,d3
     lea     Str_ConnectToWiFi_Connected,a6
     jmp     DrawText
