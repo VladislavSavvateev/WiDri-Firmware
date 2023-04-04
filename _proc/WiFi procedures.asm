@@ -102,7 +102,51 @@ WiFi_GetSSID_r:
     move.b  #0,(a1)+
     rts
 
+; ===================================================================
+; Sends auth.login
+; input:
+;   a1 - SSID buf (null-terminated)
+;   a2 - password buf (null-terminated)
+; ===================================================================
 WiFi_SetAP:
+    move.b  #2,$B00000
+
+    move.l  a1,a3
+    moveq   #0,d0
+@calcSSIDlen
+        move.b  (a3)+,d1
+        beq.s   @calcSSIDdone
+        addq.b  #1,d0
+        bra.s   @calcSSIDlen
+
+@calcSSIDdone
+    move.b  d0,$B00000
+
+@sendSSID
+        move.b  (a1)+,d0
+        beq.s   @sendSSID_end
+        move.b  d0,$B00000
+        bra.s   @sendSSID
+
+@sendSSID_end
+    move.l  a2,a3
+    moveq   #0,d0
+@calcPassLen
+        move.b  (a3)+,d1
+        beq.s   @calcPassDone
+        addq.b  #1,d0
+        bra.s   @calcPassLen
+
+@calcPassDone
+    move.b  d0,$B00000
+
+@sendPass
+        move.b  (a2)+,d0
+        beq.s   @sendPass_end
+        move.b  d0,$B00000
+        bra.s   @sendPass
+
+@sendPass_end
     rts
 
 ; ===================================================================

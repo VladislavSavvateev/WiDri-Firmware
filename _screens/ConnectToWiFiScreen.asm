@@ -40,7 +40,7 @@ ConnectToWiFiScreen:
     drawMap Map_BG, Map_BG_End, 512, $E000, 0, 0, 320, vCW_BgOff/32
 
     ; reset vars
-    move.b  #2,vConnectToWiFiScreen_Action
+    move.b  #0,vConnectToWiFiScreen_Action
     move.b  #2,vConnectToWiFiScreen_Timer
     move.b  #0,vConnectToWiFiScreen_ExitFromScreen
 
@@ -70,24 +70,22 @@ ConnectToWiFiScreen_Loop:
     jmp     ConnectToWiFiScreen_LoopActions(pc,d0.w)
 ; ---------------------------------------------------------
 ConnectToWiFiScreen_LoopActions:
-    dc.w    ConnectToWiFiScreen_LoopEnd-ConnectToWiFiScreen_LoopActions
+    dc.w    ConnectToWiFiScreen_Wait-ConnectToWiFiScreen_LoopActions                        ; 00
+    dc.w    ConnectToWiFiScreen_PalFadeIn-ConnectToWiFiScreen_LoopActions                   ; 02
 
-    dc.w    ConnectToWiFiScreen_Wait-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_PalFadeIn-ConnectToWiFiScreen_LoopActions
+    dc.w    ConnectToWiFiScreen_WiFiSetAP-ConnectToWiFiScreen_LoopActions                   ; 04
+    dc.w    ConnectToWiFiScreen_BufCheck-ConnectToWiFiScreen_LoopActions                    ; 06
+    dc.w    ConnectToWiFiScreen_WiFiSetAP__ValCheck-ConnectToWiFiScreen_LoopActions         ; 08
 
-    dc.w    ConnectToWiFiScreen_WiFiSetAP-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_BufCheck-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_WiFiSetAP__ValCheck-ConnectToWiFiScreen_LoopActions
+    dc.w    ConnectToWiFiScreen_WiFiConnect-ConnectToWiFiScreen_LoopActions                 ; 0A
+    dc.w    ConnectToWiFiScreen_BufCheck-ConnectToWiFiScreen_LoopActions                    ; 0C
+    dc.w    ConnectToWiFiScreen_WiFiConnect__ValCheck-ConnectToWiFiScreen_LoopActions       ; 0E
 
-    dc.w    ConnectToWiFiScreen_WiFiConnect-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_BufCheck-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_WiFiConnect__ValCheck-ConnectToWiFiScreen_LoopActions
+    dc.w    ConnectToWiFiScreen_Wait-ConnectToWiFiScreen_LoopActions                        ; 10
+    dc.w    ConnectToWiFiScreen_GoToSelectScreen-ConnectToWiFiScreen_LoopActions            ; 12
 
-    dc.w    ConnectToWiFiScreen_WiFiGetConStatus-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_BufCheck-ConnectToWiFiScreen_LoopActions
-    dc.w    ConnectToWiFiScreen_WiFiGetConStatus__ValCheck-ConnectToWiFiScreen_LoopActions
-
-    dc.w    ConnectToWiFiScreen_LoopEnd-ConnectToWiFiScreen_LoopActions
+    dc.w    ConnectToWiFiScreen_Wait-ConnectToWiFiScreen_LoopActions                        ; 14
+    dc.w    ConnectToWiFiScreen_GoToLoginScreen-ConnectToWiFiScreen_LoopActions             ; 16
 ; ---------------------------------------------------------
 ConnectToWiFiScreen_Wait:
     subq.b  #1,vConnectToWiFiScreen_Timer
@@ -112,62 +110,28 @@ ConnectToWiFiScreen_PalFadeIn:
     rts
 ; ---------------------------------------------------------------------------
 ConnectToWiFiScreen_WiFiSetAP:
+    move.b  #180,vConnectToWiFiScreen_Timer
+
     addq.b  #2,vConnectToWiFiScreen_Action
 
-    move.b  #2,$B00000
-
-    lea     vConnectToWiFiScreen_SelectedSSID,a0
-    moveq   #0,d0
-@calcSSIDlen
-        move.b  (a0)+,d1
-        beq.s   @calcSSIDdone
-        addq.b  #1,d0
-        bra.s   @calcSSIDlen
-
-@calcSSIDdone
-    move.b  d0,$B00000
-    lea     vConnectToWiFiScreen_SelectedSSID,a0
-
-@sendSSID
-        move.b  (a0)+,d0
-        beq.s   @sendSSID_end
-        move.b  d0,$B00000
-        bra.s   @sendSSID
-
-@sendSSID_end
-    lea     vConnectToWiFiScreen_Password,a0
-    moveq   #0,d0
-@calcPassLen
-        move.b  (a0)+,d1
-        beq.s   @calcPassDone
-        addq.b  #1,d0
-        bra.s   @calcPassLen
-
-@calcPassDone
-    move.b  d0,$B00000
-    lea     vConnectToWiFiScreen_Password,a0
-
-@sendPass
-        move.b  (a0)+,d0
-        beq.s   @sendPass_end
-        move.b  d0,$B00000
-        bra.s   @sendPass
-
-@sendPass_end
-    rts
+    lea     vConnectToWiFiScreen_SelectedSSID,a1
+    lea     vConnectToWiFiScreen_Password,a2
+    jmp     WiFi_SetAP
 ; ---------------------------------------------------------------------------
 ConnectToWiFiScreen_BufCheck:
-    move.w  $B00002,d0
+    jsr     Arduino_GetBufferLength
+    tst.w   d0
     beq.s   @rts
     addq.b  #2,vConnectToWiFiScreen_Action
 @rts
     rts
 ; ---------------------------------------------------------------------------
 ConnectToWiFiScreen_WiFiSetAP__ValCheck:
-    move.b  $B00000,d0
+    jsr     WiFi_SetAP_r
+    tst.b   d0
     bne.s   @good
 
-    move.b  #0,vConnectToWiFiScreen_Action
+    move.b  #$16,vConnectToWiFiScreen_Action
     jsr     ConnectToWiFiScreen_ClearStatus
     PosToVRAM   $C000, 14, 224/16, 512, d7
     moveq   #0,d3
@@ -186,60 +150,35 @@ ConnectToWiFiScreen_WiFiConnect:
     jsr     DrawText
 
     addq.b  #2,vConnectToWiFiScreen_Action
-    move.b  #3,$B00000
-    rts
+    jmp     WiFi_Connect
 ; ---------------------------------------------------------------------------
 ConnectToWiFiScreen_WiFiConnect__ValCheck:
-    move.b  $B00000,d0
-    beq.s   @good
-    cmp.b   #6,d0
+    jsr     ConnectToWiFiScreen_ClearStatus
+    moveq   #0,d3
+
+    jsr     WiFi_Connect_r
+    cmp.b   #3,d0
     beq.s   @good
 
-    move.b  #0,vConnectToWiFiScreen_Action
-    jsr     ConnectToWiFiScreen_ClearStatus
+    move.b  #$10,vConnectToWiFiScreen_Action
     PosToVRAM   $C000, 11, 224/16, 512, d7
-    moveq   #0,d3
     lea     Str_ConnectToWiFi_ConnectionFailed,a6
     jmp     DrawText
 
 @good:
-    addq.b  #2,vConnectToWiFiScreen_Action
-    rts
-; ---------------------------------------------------------------------------
-ConnectToWiFiScreen_WiFiGetConStatus:
-    addq.b  #2,vConnectToWiFiScreen_Action
-    move.b  #5,$B00000
-    rts
-; ---------------------------------------------------------------------------
-ConnectToWiFiScreen_WiFiGetConStatus__ValCheck:
-    move.b  $B00000,d0
-    beq.s   @good
-    cmp.b   #6,d0
-    beq.s   @disconnected
+    move.b  #$14,vConnectToWiFiScreen_Action
 
-    cmp.b   #3,d0
-    beq.s   @good
-
-    move.b  #0,vConnectToWiFiScreen_Action
-    jsr     ConnectToWiFiScreen_ClearStatus
-    PosToVRAM   $C000, 11, 224/16, 512, d7
-    moveq   #0,d3
-    lea     Str_ConnectToWiFi_ConnectionFailed,a6
-    jmp     DrawText
-
-@good
-    move.b  #0,vConnectToWiFiScreen_Action
-    jsr     ConnectToWiFiScreen_ClearStatus
     PosToVRAM   $C000, 9, 224/16, 512, d7
-    moveq   #0,d3
     lea     Str_ConnectToWiFi_Connected,a6
     jmp     DrawText
-
-@disconnected
-    subq.b  #4,vConnectToWiFiScreen_Action
-    rts
 ; ---------------------------------------------------------------------------
-ConnectToWiFiScreen_LoopEnd:
+ConnectToWiFiScreen_GoToSelectScreen:
+    move.b  #1,vConnectToWiFiScreen_ExitFromScreen
+    move.b  #1,$FFFFF600
+    rts
+ConnectToWiFiScreen_GoToLoginScreen:
+    move.b  #1,vConnectToWiFiScreen_ExitFromScreen
+    move.b  #5,$FFFFF600
     rts
 ; ---------------------------------------------------------------------------
 ConnectToWiFiScreen_ClearStatus:

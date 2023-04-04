@@ -80,6 +80,8 @@ WifiSelectScreen:
     move.b  #0,vWifiSelectScreen_Action
     move.b  #2,vWifiSelectScreen_Timer
     move.b  #0,vWifiSelectScreen_ExitFromScreen
+    move.b  #0,vWifiSelectScreen_ListOffset
+    move.b  #0,vWifiSelectScreen_ListPos
 
 @loop
 	move.b	#2,($FFFFF62A).w
