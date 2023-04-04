@@ -107,11 +107,11 @@ WifiSelectScreen_LoopActions:
 
     dc.w    WifiSelectScreen_SendSearchReq-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_CheckForSearchEnd_1-WifiSelectScreen_LoopActions
-    dc.w    WifiSelectScreen_CheckForSearchEnd_2-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_CheckBuf-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_CheckForSearchEnd_3-WifiSelectScreen_LoopActions
 
     dc.w    WifiSelectScreen_GettingListOfAPs_1-WifiSelectScreen_LoopActions
-    dc.w    WifiSelectScreen_GettingListOfAPs_2-WifiSelectScreen_LoopActions
+    dc.w    WifiSelectScreen_CheckBuf-WifiSelectScreen_LoopActions
     dc.w    WifiSelectScreen_GettingListOfAPs_3-WifiSelectScreen_LoopActions
 
     dc.w    WifiSelectScreen_ClearList-WifiSelectScreen_LoopActions
@@ -144,24 +144,24 @@ WifiSelectScreen_PalFadeIn:
     rts
 ; ---------------------------------------------------------------------------
 WifiSelectScreen_SendSearchReq:             ; sending wifi.search
-    move.b  #7,$B00000
     addq.b  #2,vWifiSelectScreen_Action
-    rts
+    jmp     WiFi_Search
 ; ---------------------------------------------------------------------------
 WifiSelectScreen_CheckForSearchEnd_1:       ; sending wifi.found_ap_count
     addq.b  #2,vWifiSelectScreen_Action
-    move.b  #9,$B00000
-    rts
+    jmp     WiFi_FoundApCount
 ; ---------------------------------------------------------------------------
-WifiSelectScreen_CheckForSearchEnd_2:       ; checking for anything in the buffer
-    move.w  $B00002,d0
+WifiSelectScreen_CheckBuf:              ; checking for anything in the buffer
+    jsr     Arduino_GetBufferLength
+    tst.w   d0
     beq.s   @rts
     addq.b  #2,vLogoScreen_Action
 @rts
     rts
 ; ---------------------------------------------------------------------------
 WifiSelectScreen_CheckForSearchEnd_3:       ; checking for the SCAN_COMPLETE
-    move.b  $B00000,d0
+    jsr     WiFi_Search_r
+    tst.b   d0
     bmi.s   @notComplete            ; -1 and -2 are not success statuses
 
     addq.b  #6,vLogoScreen_Action
@@ -170,56 +170,26 @@ WifiSelectScreen_CheckForSearchEnd_3:       ; checking for the SCAN_COMPLETE
     subq.b  #4,vLogoScreen_Action
     rts
 ; ---------------------------------------------------------------------------
-
 WifiSelectScreen_GettingListOfAPs_1:       ; sending wifi.get_scan_results
-    move.b  #8,$B00000
     addq.b  #2,vLogoScreen_Action
-    rts
-; ---------------------------------------------------------------------------
-WifiSelectScreen_GettingListOfAPs_2:
-    move.w  $B00002,d0
-    beq.s   @rts
-    addq.b  #2,vLogoScreen_Action
-@rts
-    rts
+    jmp     WiFi_GetScanResuls
 ; ---------------------------------------------------------------------------
 WifiSelectScreen_GettingListOfAPs_3:
     addq.b  #2,vLogoScreen_Action
 
-    moveq   #0,d0
+    lea     vWifiSelectScreen_FoundWifiAPs,a1
+    jsr     WiFi_GetScanResults_r
 
-    lea     vWifiSelectScreen_FoundWifiAPs,a0
-    move.b  $B00000,d0  ; get APs count
-
+    move.b  vWifiSelectScreen_FoundWifiAPs,d0
     cmp.b   #5,d0
-    bgt.s   @bigger
+    ble.s   @limit
+    move.b  #4,vWifiSelectScreen_ListPos
+    rts
 
+@limit
     move.b  d0,d2
     sub.b   #1,d2
     move.b  d2,vWifiSelectScreen_ListPos
-    bra.s   @cont
-
-@bigger
-    move.b  #4,vWifiSelectScreen_ListPos
-
-@cont
-    move.b  d0,(a0)+
-    subq.b  #1,d0
-
-@apLoop
-        moveq   #0,d1
-        move.b  $B00000,d1  ; get SSID length
-        subq.b  #1,d1
-
-@ssidLoop
-            move.b  $B00000,(a0)+   ; SSID char by char
-            dbf     d1,@ssidLoop
-        
-        move.b  #0,(a0)+        ; string stop byte
-
-        move.b  $B00000,(a0)+   ; sec byte
-        dbf     d0,@apLoop
-    
     rts
 ; ---------------------------------------------------------------------------
 WifiSelectScreen_ClearList:

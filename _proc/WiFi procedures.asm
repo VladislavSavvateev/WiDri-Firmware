@@ -73,6 +73,7 @@ WiFi_HasApCreds_r:
 WiFi_SetAP_r:
 WiFi_Connect_r:
 WiFi_GetConStatus_r:
+WiFi_Search_r:
 Auth_IsLoggedIn_r:
 Auth_Login_r:
     moveq   #0,d0
@@ -119,6 +120,54 @@ WiFi_Disconnect:
 ; ===================================================================
 WiFi_GetConStatus:
     move.b  #WIFI__GET_CON_STATUS,$B00000
+    rts
+
+; ===================================================================
+; Sends wifi.search
+; ===================================================================
+WiFi_Search:
+    move.b  #WIFI__SEARCH, $B00000
+    rts
+
+; ===================================================================
+; Sends wifi.get_scan_results
+; ===================================================================
+WiFi_GetScanResuls:
+    move.b  #WIFI__GET_SCAN_RESULTS,$B00000
+    rts
+
+; ===================================================================
+; Reads answer from wifi.get_scan_results
+; input:
+;   a1 - buffer
+; ===================================================================
+WiFi_GetScanResults_r:
+    moveq   #0,d0
+    move.b  $B00000,d0  ; get APs count
+    move.b  d0,(a1)+
+    subq.b  #1,d0
+
+@apLoop
+        moveq   #0,d1
+        move.b  $B00000,d1  ; get SSID length
+        subq.b  #1,d1
+
+@ssidLoop
+            move.b  $B00000,(a1)+   ; SSID char by char
+            dbf     d1,@ssidLoop
+        
+        move.b  #0,(a1)+        ; string stop byte
+
+        move.b  $B00000,(a1)+   ; sec byte
+        dbf     d0,@apLoop
+    
+    rts
+
+; ===================================================================
+; Sends wifi.found_ap_count
+; ===================================================================
+WiFi_FoundApCount:
+    move.b  #WIFI__FOUND_AP_COUNT,$B00000
     rts
 
 ; ===================================================================
