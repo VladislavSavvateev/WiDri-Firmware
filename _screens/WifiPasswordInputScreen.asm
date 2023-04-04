@@ -5,6 +5,7 @@ vWifiPasswordInputScreen_Action         equ $FFFF6000   ; b
 vWifiPasswordInputScreen_Timer          equ $FFFF6001   ; b
 vWifiPasswordInputScreen_PasswordBuffer equ $FFFF6002   ; 64 bytes
 vWifiPasswordInputScreen_PasswordPos    equ $FFFF6042   ; b
+vWifiPasswordInputScreen_ExitFromScreen equ $FFFF6043   ; b
 
 vWifiPasswordInputScreen_SelectedSSID   equ $FFFF7000   ; idk, zero-based
 
@@ -13,6 +14,8 @@ vWPI_BgOff          equ vWSS_FontOff+(Font_Art_End-Font_Art)
 vWPI_KbOff          equ vWPI_BgOff+(Art_BG_End-Art_BG)
 vWPI_KbdHovOff      equ vWPI_KbOff+(Art_Keyboard_End-Art_Keyboard)
 vWPI_ShiftSymOff    equ vWPI_KbdHovOff+(Art_KbdHover__End-Art_KbdHover)
+vWPI_InputFieldOff  equ vWPI_ShiftSymOff+(Art_ShiftSym_End-Art_ShiftSym)
+vWPI_IconsOff       equ vWPI_InputFieldOff+(Art_InputField_End-Art_InputField)
 
 WifiPasswordInputScreen:   
     jsr     Pal_FadeFrom
@@ -54,6 +57,15 @@ WifiPasswordInputScreen:
     ; load SHIFT SYM GFX
     loadArt Art_ShiftSym, Art_ShiftSym_End, vWPI_ShiftSymOff
 
+    ; load input field GFX
+    loadArt Art_InputField, Art_InputField_End, vWPI_InputFieldOff
+
+    ; load input field map
+    drawMap Map_InputField, Map_InputField_End, 512, $E000, 48/8, 64/8, 224, vWPI_InputFieldOff/32
+
+    ; load icons GFX
+    loadArt Art_Icons, Art_Icons__End, vWPI_IconsOff
+
     jsr     FindFreeObject
     move.b  #3,(a0)
 
@@ -65,14 +77,28 @@ WifiPasswordInputScreen:
     move.w  #vWPI_ShiftSymOff/32,$2A(a0)
     move.w  #vWPI_KbOff/32,$2C(a0)
 
-    PosToVRAM   $C000, 0, 1, 512, d7
+    jsr     FindFreeObject
+    move.b  #5,(a0)
+    move.w  #vWPI_IconsOff/32,2(a0)
+    move.w  #$80+56,8(a0)
+    move.w  #$80+24,$C(a0)
+    move.b  #0,$10(a0)
+
+    PosToVRAM   $C000, 96/8, 40/8, 512, d7
     move.w  #512,d5
     move.w  #0,d3
     lea     vWifiPasswordInputScreen_SelectedSSID,a6
     jsr     DrawText
 
+    PosToVRAM   $C000, 96/8, 24/8, 512, d7
+    move.w  #512,d5
+    move.w  #0,d3
+    lea     Str_EnterPassword_Title,a6
+    jsr     DrawText
+
     move.b  #0,vWifiPasswordInputScreen_Action  ; set current action
     move.b  #2,vWifiPasswordInputScreen_Timer   ; set timer for pal fade
+    move.b  #0,vWifiPasswordInputScreen_ExitFromScreen
     
     moveq   #64/4-1,d0
     lea     vWifiPasswordInputScreen_PasswordBuffer,a0
@@ -90,8 +116,10 @@ WifiPasswordInputScreen:
 	jsr		ObjectRun
     jsr     WifiPasswordInputScreen_Loop
 
-	jmp		@loop
-
+    tst.b   vWifiPasswordInputScreen_ExitFromScreen
+    beq.s   @loop
+    rts
+; ---------------------------------------------------------
 WifiPasswordInputScreen_KeyboardCallback:
     moveq   #0,d1
     move.b  vWifiPasswordInputScreen_PasswordPos,d1
@@ -104,7 +132,7 @@ WifiPasswordInputScreen_KeyboardCallback:
     cmp.b   #8,d0           ; backspace?
     bne.s   @enter
     tst.b   d1
-    beq.s   @rts
+    beq.w   @rts
     move.b  #0,-1(a1)
     subq.b  #1,vWifiPasswordInputScreen_PasswordPos
 
@@ -113,6 +141,16 @@ WifiPasswordInputScreen_KeyboardCallback:
 @enter
     cmp.b   #$A,d0          ; enter?
     bne.s   @rts
+
+    lea     vWifiPasswordInputScreen_PasswordBuffer,a1
+    lea     vConnectToWiFiScreen_Password,a2
+
+@passLoop
+        move.b  (a1)+,(a2)+
+        bne.s   @passLoop
+
+    move.b  #1,vWifiPasswordInputScreen_ExitFromScreen
+    move.b  #4,$FFFFF600
 
     jmp     @rts
 
@@ -123,8 +161,8 @@ WifiPasswordInputScreen_KeyboardCallback:
     addq.b  #1,vWifiPasswordInputScreen_PasswordPos
 
 @redraw
-    clearRect   512, $C000, 0, 0, 320, 8, 0
-    move.w  #$C000,d7
+    clearRect   512, $C000, 56, 72, 208, 8, 0
+    PosToVRAM   $C000, 56/8, 72/8, 512, d7
     move.w  #0,d3
     move.l  #vWifiPasswordInputScreen_PasswordBuffer,a6
     jmp     DrawText

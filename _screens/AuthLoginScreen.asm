@@ -1,0 +1,204 @@
+; =========================================================
+; Auth login input Screen
+; =========================================================
+vAuthLoginScreen_Action         equ $FFFF6000   ; b
+vAuthLoginScreen_Timer          equ $FFFF6001   ; b
+vAuthLoginScreen_LoginBuffer    equ $FFFF6002   ; 64 bytes
+vAuthLoginScreen_LoginPos       equ $FFFF6042   ; b
+vAuthLoginScreen_ExitFromScreen equ $FFFF6043   ; b
+
+vAL_FontOff        equ $0000
+vAL_BgOff          equ vAL_FontOff+(Font_Art_End-Font_Art)
+vAL_KbOff          equ vAL_BgOff+(Art_BG_End-Art_BG)
+vAL_KbdHovOff      equ vAL_KbOff+(Art_Keyboard_End-Art_Keyboard)
+vAL_ShiftSymOff    equ vAL_KbdHovOff+(Art_KbdHover__End-Art_KbdHover)
+vAL_InputFieldOff  equ vAL_ShiftSymOff+(Art_ShiftSym_End-Art_ShiftSym)
+vAL_IconsOff       equ vAL_InputFieldOff+(Art_InputField_End-Art_InputField)
+
+AuthLoginScreen:   
+    jsr     Pal_FadeFrom
+
+    clearRect   512, $C000, 0, 0, 320, 224, 0
+
+    lea		$C00004,a6	; load VDP
+	move.w	#$8004,(a6)	; Reg#00: H-Int disabled, line counter disabled
+	move.w	#$8174,(a6)	; Reg#01: DISPLAY on, V-Int enabled, DMA on, 224
+	move.w	#$8230,(a6)	; Reg#02: Plan A is $C000
+	move.w	#$8407,(a6)	; Reg#04: Plan B is $E000
+	move.w	#$8700,(a6)	; Reg#07: backColor is 0, 0
+	move.w	#$8B03,(a6)	; Reg#11: Scrolling: V(F), H(EL)
+	move.w	#$9001,(a6)	; Reg#16: 512x256
+
+	jsr		ClearObjects
+
+    ; load main palette
+    loadPal Pal_Main, Pal_Main_End, $FFFFFB80
+
+    ; load font GFX
+    loadArt Font_Art, Font_Art_End, vWSS_FontOff
+
+    ; load BG GFX
+    loadArt Art_BG, Art_BG_End, vWSS_BgOff
+    
+    ; load BG mappings
+    drawMap Map_BG, Map_BG_End, 512, $E000, 0, 0, 320, vWSS_BgOff/32
+
+    ; load keyboard GFX
+    loadArt Art_Keyboard, Art_Keyboard_End, vAL_KbOff
+
+    ; load keyboard mappings
+    drawMap Map_Keyboard, Map_Keyboard_End, 512, $C000, 0, 14, 320, vAL_KbOff/32
+
+    ; load keyboard hover GFX
+    loadArt Art_KbdHover, Art_KbdHover__End, vAL_KbdHovOff
+
+    ; load SHIFT SYM GFX
+    loadArt Art_ShiftSym, Art_ShiftSym_End, vAL_ShiftSymOff
+
+    ; load input field GFX
+    loadArt Art_InputField, Art_InputField_End, vAL_InputFieldOff
+
+    ; load input field map
+    drawMap Map_InputField, Map_InputField_End, 512, $E000, 48/8, 64/8, 224, vAL_InputFieldOff/32
+
+    ; load icons GFX
+    loadArt Art_Icons, Art_Icons__End, vAL_IconsOff
+
+    jsr     FindFreeObject
+    move.b  #3,(a0)
+
+    jsr     FindFreeObject
+    move.b  #4,(a0)
+    move.b  #0,$20(a0)
+    move.b  #0,$21(a0)
+    move.l  #AuthLoginScreen_KeyboardCallback,$26(a0)
+    move.w  #vAL_ShiftSymOff/32,$2A(a0)
+    move.w  #vAL_KbOff/32,$2C(a0)
+
+    jsr     FindFreeObject
+    move.b  #5,(a0)
+    move.w  #vAL_IconsOff/32,2(a0)
+    move.w  #$80+56,8(a0)
+    move.w  #$80+24,$C(a0)
+    move.b  #1,$10(a0)
+
+    PosToVRAM   $C000, 96/8, 32/8, 512, d7
+    move.w  #512,d5
+    move.w  #0,d3
+    lea     Str_AuthLogin_Title,a6
+    jsr     DrawText
+
+    move.b  #0,vAuthLoginScreen_Action  ; set current action
+    move.b  #2,vAuthLoginScreen_Timer   ; set timer for pal fade
+    move.b  #0,vAuthLoginScreen_ExitFromScreen
+    
+    moveq   #64/4-1,d0
+    lea     vAuthLoginScreen_LoginBuffer,a0
+@clearBuf
+    move.l  #0,(a0)+
+    dbf     d0,@clearBuf
+
+    move.b  #0,vAuthLoginScreen_LoginPos
+
+@loop
+	move.b	#2,($FFFFF62A).w
+	jsr		DelayProgram
+
+	jsr		ClearSprites
+	jsr		ObjectRun
+    jsr     AuthLoginScreen_Loop
+
+    tst.b   vAuthLoginScreen_ExitFromScreen
+    beq.s   @loop
+    rts
+; ---------------------------------------------------------
+AuthLoginScreen_KeyboardCallback:
+    moveq   #0,d1
+    move.b  vAuthLoginScreen_LoginPos,d1
+    move.l  #vAuthLoginScreen_LoginBuffer,a1
+    add.l   d1,a1
+
+    cmp.b   #$20,d0
+    bge.s   @normalSymbol
+
+    cmp.b   #8,d0           ; backspace?
+    bne.s   @enter
+    tst.b   d1
+    beq.w   @rts
+    move.b  #0,-1(a1)
+    subq.b  #1,vAuthLoginScreen_LoginPos
+
+    jmp     @redraw
+
+@enter
+    cmp.b   #$A,d0          ; enter?
+    bne.s   @rts
+
+    lea     vAuthLoginScreen_LoginBuffer,a1
+    lea     vAuthenticationScreen_Login,a2
+
+@passLoop
+        move.b  (a1)+,(a2)+
+        bne.s   @passLoop
+
+    move.b  #1,vAuthLoginScreen_ExitFromScreen
+    move.b  #6,$FFFFF600
+
+    jmp     @rts
+
+@normalSymbol
+    cmp.b   #64,d1
+    beq.s   @rts
+    move.b  d0,(a1)
+    addq.b  #1,vAuthLoginScreen_LoginPos
+
+@redraw
+    clearRect   512, $C000, 56, 72, 208, 8, 0
+    PosToVRAM   $C000, 56/8, 72/8, 512, d7
+    move.w  #0,d3
+    move.l  #vAuthLoginScreen_LoginBuffer,a6
+    jmp     DrawText
+@rts
+    rts
+
+; =========================================================
+; Main Loop
+; =========================================================
+AuthLoginScreen_Loop:
+    moveq   #0,d0
+    move.b  vAuthLoginScreen_Action,d0
+    move.w  AuthLoginScreen_LoopActions(pc,d0.w),d0
+    jmp     AuthLoginScreen_LoopActions(pc,d0.w)
+; ---------------------------------------------------------
+AuthLoginScreen_LoopActions:
+    dc.w    AuthLoginScreen_Wait-AuthLoginScreen_LoopActions
+    dc.w    AuthLoginScreen_PalFadeIn-AuthLoginScreen_LoopActions
+
+    dc.w    AuthLoginScreen_LoopEnd-AuthLoginScreen_LoopActions
+; ---------------------------------------------------------
+AuthLoginScreen_Wait:
+    subq.b  #1,vAuthLoginScreen_Timer
+    bne.s   @rts
+    addq.b  #2,vAuthLoginScreen_Action
+@rts
+    rts
+    
+AuthLoginScreen_PalFadeIn:
+    addq.b  #2,vAuthLoginScreen_Action   ; pre-move to the next action
+
+    lea     $FFFFFB00,a1
+    lea     $FFFFFB80,a2
+    moveq   #16,d2
+    jsr     Pal_FadeInStep  ; making one step fade
+    tst.b   d3              ; changes was made?
+    beq.s   @rts            ; if yes, branch
+
+    subq.b  #4,vAuthLoginScreen_Action   ; if not, move to the wait action
+    move.b  #2,vAuthLoginScreen_Timer    ; and set the timer
+@rts
+    rts
+
+AuthLoginScreen_LoopEnd:
+    rts
+
+AuthLoginScreen_End:

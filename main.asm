@@ -179,11 +179,11 @@ GameInit:
 GameClrRAM:
 	move.l	d7,(a6)+
 	dbf	d6,GameClrRAM	; fill RAM ($0000-$FDFF) with $0
-	bsr.w	VDPSetupGame
+	jsr		VDPSetupGame
 	jsr		SoundDriverLoad
 	jsr		UpdateMusic
-	bsr.w	JoypadInit
-	move.b	#1,($FFFFF600).w ; set Game Mode to Sega Screen
+	jsr		JoypadInit
+	move.b	#0,($FFFFF600).w ; set Game Mode to Sega Screen
 
 	jsr		ReadJoypads
 
@@ -211,10 +211,14 @@ MainGameLoop:
 	jmp		MainGameLoop
 
 GameScreens:
-	dc.l	LogoScreen		; Logo Screen
-	dc.l	WifiSelectScreen
-	dc.l	WifiPasswordInputScreen
-	dc.l	ClearEEPROMScreen
+	dc.l	LogoScreen					; 00
+	dc.l	WifiSelectScreen			; 01
+	dc.l	WifiPasswordInputScreen		; 02
+	dc.l	ClearEEPROMScreen			; 03
+	dc.l	ConnectToWiFiScreen			; 04
+	dc.l	AuthLoginScreen				; 05
+	dc.l	AuthPasswordScreen			; 06
+	dc.l	AuthenticationScreen		; 07
 
 ; =========================================================
 ; Game Screens
@@ -223,6 +227,10 @@ GameScreens:
 	include "_screens/WifiSelectScreen.asm"
 	include	"_screens/WifiPasswordInputScreen.asm"
 	include "_screens/ClearEEPROMScreen.asm"
+	include "_screens/ConnectToWiFiScreen.asm"
+	include "_screens/AuthLoginScreen.asm"
+	include "_screens/AuthPasswordScreen.asm"
+	include	"_screens/AuthenticationScreen.asm"
 
 ; =========================================================
 ; Common
@@ -260,6 +268,11 @@ Map_ShiftDeactivated:	incbin	"mapunc/shift_deactivated.bin"
 Map_ShiftDeactivated_End:
 Map_SymDeactivated:		incbin	"mapunc/sym_deactivated.bin"
 Map_SymDeactivated_End:
+
+Art_InputField:	incbin	"artunc/input_field.bin"
+Art_InputField_End:
+Map_InputField:	incbin	"mapunc/input_field.bin"
+Map_InputField_End:
 
 ; =========================================================
 ; Strings
@@ -324,6 +337,10 @@ Map_SymDeactivated_End:
 ; Text procedures
 ; ===========================================================================
 		include	"_proc/Text procedures.asm"
+; ===========================================================================
+; WiFi procedures
+; ===========================================================================
+		include	"_proc/WiFi procedures.asm"
 		
 ; ===========================================================================
 ; Debugging modules

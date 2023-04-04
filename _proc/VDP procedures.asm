@@ -15,12 +15,12 @@ VDP_Loop:
 		move.w	d0,($FFFFF60C).w
 		move.w	#$8ADF,($FFFFF624).w
 		moveq	#0,d0
-		move.l	#$C0000000,($C00004).l ; установка VDP на запись в CRAM
+		move.l	#$C0000000,($C00004).l ; пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ VDP пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ CRAM
 		move.w	#$3F,d7
 
 VDP_ClrCRAM:
 		move.w	d0,(a1)
-		dbf	d7,VDP_ClrCRAM	; очистка CRAM
+		dbf	d7,VDP_ClrCRAM	; пїЅпїЅпїЅпїЅпїЅпїЅпїЅ CRAM
 
 		clr.l	($FFFFF616).w
 		clr.l	($FFFFF61A).w
@@ -30,7 +30,7 @@ VDP_ClrCRAM:
 		move.l	#$94FF93FF,(a5)
 		move.w	#$9780,(a5)
 		move.l	#$40000080,(a5)
-		move.w	#0,($C00000).l	; очистка экрана
+		move.w	#0,($C00000).l	; пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
 loc_128E:
 		move.w	(a5),d1
@@ -126,3 +126,11 @@ VDPGfx_Char:
         dbf	d2,VDPGfx_Loop	; repeat for the amount of rows
 		rts
 ; End of function ShowVDPGraphics
+
+ClearPlaneA:
+	clearRect	512, $C000, 0, 0, 320, 224, 0
+	rts
+
+ClearPlaneB:
+	clearRect	512, $E000, 0, 0, 320, 224, 0
+	rts

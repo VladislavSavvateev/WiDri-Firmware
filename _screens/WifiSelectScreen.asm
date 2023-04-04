@@ -14,7 +14,11 @@ vWSS_ListOff    equ vWSS_BgOff+(Art_BG_End-Art_BG)
 vWSS_LocksOff   equ vWSS_ListOff+(Art_List_End-Art_List)
 vWSS_IconsOff   equ vWSS_LocksOff+(Art_Lock__End-Art_Lock)
 
-WifiSelectScreen:   
+WifiSelectScreen:    
+    jsr     Pal_FadeFrom
+
+    jsr     ClearPlaneA
+
     lea		$C00004,a6	; load VDP
 	move.w	#$8004,(a6)	; Reg#00: H-Int disabled, line counter disabled
 	move.w	#$8174,(a6)	; Reg#01: DISPLAY on, V-Int enabled, DMA on, 224
