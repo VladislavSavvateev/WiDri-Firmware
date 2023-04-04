@@ -4,6 +4,7 @@
 ; $21.b - Y-pos (based on keys)
 ; $22.l - keyboard object
 ; $26.l - callback for values
+;   #$18 - cancel
 ; $2A.w - SHIFT SYM art pos
 ; $2C.w - keyboard art pos
 ; ===================================================================
@@ -42,9 +43,8 @@ Obj_KbdHover__rRecalcPos:
     move.b  (a1)+,$10(a0)       ; frame
 ; -------------------------------------------------------------------
 Obj_KbdHover__rControl:
-    move.b  Joypad+Press,d0
-    andi.b  #A+B+C,d0
-    beq.w   @right
+    btst    #iA,Joypad+Press
+    beq.w   @cancel
 
     move.b  #$A0,d0
     jsr     PlaySound
@@ -100,6 +100,13 @@ Obj_KbdHover__rControl:
     sub.b   #$20,d0
 
 @callback
+    move.l  $26(a0),a1
+    jsr     (a1)            ; call callback
+; -------------------------------------------------------------------
+@cancel:
+    btst    #iB,Joypad+Press
+    beq.s   @right
+    move.b  #$18,d0
     move.l  $26(a0),a1
     jsr     (a1)            ; call callback
 ; -------------------------------------------------------------------

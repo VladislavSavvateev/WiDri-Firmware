@@ -140,7 +140,7 @@ WifiPasswordInputScreen_KeyboardCallback:
 
 @enter
     cmp.b   #$A,d0          ; enter?
-    bne.s   @rts
+    bne.s   @cancel
 
     lea     vWifiPasswordInputScreen_PasswordBuffer,a1
     lea     vConnectToWiFiScreen_Password,a2
@@ -166,6 +166,14 @@ WifiPasswordInputScreen_KeyboardCallback:
     move.w  #0,d3
     move.l  #vWifiPasswordInputScreen_PasswordBuffer,a6
     jmp     DrawText
+
+@cancel
+    cmp.b   #$18,d0
+    bne.s   @rts
+
+    move.b  #1,vWifiPasswordInputScreen_ExitFromScreen
+    move.b  #1,$FFFFF600
+
 @rts
     rts
 
