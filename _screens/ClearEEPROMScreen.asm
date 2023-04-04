@@ -93,7 +93,7 @@ ClearEEPROMScreen_LoopActions:
     dc.w    ClearEEPROMScreen_LoopEnd-ClearEEPROMScreen_LoopActions
 ; ---------------------------------------------------------
 ClearEEPROMScreen_CheckForCombo:
-    move.b  Joypad+Press,d0
+    move.b  Joypad+Held,d0
     andi.b  #Right+A+B+C+Start,d0
     cmp.b   #Right+A+B+C+Start,d0
     bne.s   @rts
