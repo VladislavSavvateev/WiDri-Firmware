@@ -84,17 +84,16 @@ LogoScreen_LoopActions:
     dc.w    LogoScreen_SendWiFiGetSSID__DisplaySSID-LogoScreen_LoopActions      ; 12
 
     dc.w    LogoScreen_WiFiConnect-LogoScreen_LoopActions                       ; 14
-    dc.w    LogoScreen_WiFiGetConStatus-LogoScreen_LoopActions                  ; 16
-    dc.w    LogoScreen_BufCheck-LogoScreen_LoopActions                          ; 18
-    dc.w    LogoScreen_WiFiGetConStatus__CheckVal-LogoScreen_LoopActions        ; 1A
+    dc.w    LogoScreen_BufCheck-LogoScreen_LoopActions                          ; 16
+    dc.w    LogoScreen_WiFiConnect__CheckVal-LogoScreen_LoopActions             ; 18
 
-    dc.w    LogoScreen_AuthIsLoggedIn-LogoScreen_LoopActions                    ; 1C
-    dc.w    LogoScreen_BufCheck-LogoScreen_LoopActions                          ; 1E
-    dc.w    LogoScreen_AuthIsLoggedIn__CheckVal-LogoScreen_LoopActions          ; 20
+    dc.w    LogoScreen_AuthIsLoggedIn-LogoScreen_LoopActions                    ; 1A
+    dc.w    LogoScreen_BufCheck-LogoScreen_LoopActions                          ; 1C
+    dc.w    LogoScreen_AuthIsLoggedIn__CheckVal-LogoScreen_LoopActions          ; 1E
 
-    dc.w    LogoScreen_UserGetMe-LogoScreen_LoopActions                         ; 22
-    dc.w    LogoScreen_BufCheck-LogoScreen_LoopActions                          ; 24
-    dc.w    LogoScreen_UserGetMe__CheckVal-LogoScreen_LoopActions               ; 26
+    dc.w    LogoScreen_UserGetMe-LogoScreen_LoopActions                         ; 20
+    dc.w    LogoScreen_BufCheck-LogoScreen_LoopActions                          ; 22
+    dc.w    LogoScreen_UserGetMe__CheckVal-LogoScreen_LoopActions               ; 24
 
     dc.w    LogoScreen_LoopEnd-LogoScreen_LoopActions  
 ; ---------------------------------------------------------
@@ -205,31 +204,19 @@ LogoScreen_WiFiConnect:
     addq.b  #2,vLogoScreen_Action
     rts
 
-LogoScreen_WiFiGetConStatus:
-    jsr     WiFi_GetConStatus
-    addq.b  #2,vLogoScreen_Action
-    rts
-
-LogoScreen_WiFiGetConStatus__CheckVal:
+LogoScreen_WiFiConnect__CheckVal:
     jsr     WiFi_GetConStatus_r
-    beq.s   @ok
-
     cmp.b   #3,d0
     beq.s   @ok
 
-    cmp.b   #6,d0
-    beq.s   @disconnected
-
-    move.b  #0,vLogoScreen_Action
+    move.b  #1,$FFFFF600
+    move.b  #1,vLogoScreen_ExitFromScreen
+    
     PosToVRAM   $C000, 1, 7, 512, d7
     moveq   #0,d3
     lea     Str_Common_Fail,a6
     jmp     DrawText
 
-    rts
-
-@disconnected
-    subq.b  #4,vLogoScreen_Action
     rts
 
 @ok
