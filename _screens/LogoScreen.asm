@@ -267,6 +267,8 @@ LogoScreen_UserGetMe:
 
 LogoScreen_UserGetMe__CheckVal:
     addq.b  #2,vLogoScreen_Action
+    move.b  #1,vLogoScreen_ExitFromScreen
+    move.b  #8,$FFFFF600
 
     lea     vLogoScreen_SSIDBuf,a1
     jsr     User_GetMe_r

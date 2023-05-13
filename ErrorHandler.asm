@@ -63,6 +63,33 @@ Line1111Emu:
 ErrorExcept:
 	__ErrorMessage "ERROR EXCEPTION", _eh_default
 
+IRQ_Level3:
+	__ErrorMessage "IRQ LEVEL 3", _eh_default
+
+IRQ_EXT:
+	__ErrorMessage "IRQ EXT", _eh_default
+
+IRQ_Level1:
+	__ErrorMessage "IRQ LEVEL 1", _eh_default
+
+IRQ_Level5:
+	__ErrorMessage "IRQ LEVEL 5", _eh_default
+
+IRQ_Level7:
+	__ErrorMessage "IRQ LEVEL 7", _eh_default
+
+Trap:
+	__ErrorMessage "IT'S A TRAP!!", _eh_default
+
+MMU_ConfErr:
+	__ErrorMessage "MMU CONF ERROR", _eh_default
+
+MMU_IllegalOp:
+	__ErrorMessage "MMU ILLEGAL OP", _eh_default
+
+MMU_AccessV:
+	__ErrorMessage "MMU ACCESS VIOLATION", _eh_default
+
 
 
 ; ---------------------------------------------------------------

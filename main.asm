@@ -7,22 +7,25 @@
 
 StartOfRom:
 Vectors:	
-		dc.l $FFFE00, 		EntryPoint, 	BusError, 		AddressError
-		dc.l IllegalInstr, 	ZeroDivide, 	ChkInstr, 		TrapvInstr
-		dc.l PrivilegeViol, Trace, 			Line1010Emu,	Line1111Emu
-		dc.l ErrorExcept, 	ErrorExcept, 	ErrorExcept, 	ErrorExcept
-		dc.l ErrorExcept, 	ErrorExcept, 	ErrorExcept, 	ErrorExcept
-		dc.l ErrorExcept, 	ErrorExcept, 	ErrorExcept, 	ErrorExcept
-		dc.l ErrorExcept, 	ErrorTrap, 		ErrorTrap,		ErrorTrap
-		dc.l HBlank, 		ErrorTrap, 		VBlank, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
-		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap
+		dc.l $FFFE00, 		EntryPoint, 	BusError, 		AddressError		; 00 - 03
+		dc.l IllegalInstr, 	ZeroDivide, 	ChkInstr, 		TrapvInstr			; 04 - 07
+		dc.l PrivilegeViol, Trace, 			Line1010Emu,	Line1111Emu			; 08 - 11
+		dc.l ErrorExcept, 	ErrorExcept, 	ErrorExcept, 	ErrorExcept			; 12 - 15
+		dc.l ErrorExcept, 	ErrorExcept, 	ErrorExcept, 	ErrorExcept			; 16 - 19
+		dc.l ErrorExcept, 	ErrorExcept, 	ErrorExcept, 	ErrorExcept			; 20 - 23
+		dc.l ErrorExcept, 	IRQ_Level1, 	IRQ_EXT,		IRQ_Level3			; 24 - 27
+		dc.l HBlank, 		IRQ_Level5, 	VBlank, 		IRQ_Level7			; 28 - 31
+
+		dc.l Trap,			Trap, 			Trap, 			Trap				; 32 - 35
+		dc.l Trap,			Trap, 			Trap, 			Trap				; 36 - 39
+		dc.l Trap,			Trap, 			Trap, 			Trap				; 40 - 43
+		dc.l Trap,			Trap, 			Trap, 			Trap				; 44 - 48
+
+		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap			; 52 - 55
+		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap			; 56 - 59
+
+		dc.l MMU_ConfErr,	MMU_IllegalOp, 	MMU_AccessV, 	ErrorTrap			; 60 - 63
+		dc.l ErrorTrap,		ErrorTrap, 		ErrorTrap, 		ErrorTrap			; 64 - 67
 Console_:	dc.b 'SEGA MEGA DRIVE '										; Console Name
 Date:		dc.b '06/01/2000      '										; Release Date
 Title_Local:	dc.b 'WiDri Firmware v1.0 by savok                    '	; Local Title
@@ -219,6 +222,7 @@ GameScreens:
 	dc.l	AuthLoginScreen				; 05
 	dc.l	AuthPasswordScreen			; 06
 	dc.l	AuthenticationScreen		; 07
+	dc.l	ExplorerScreen				; 08
 
 ; =========================================================
 ; Game Screens
@@ -231,6 +235,7 @@ GameScreens:
 	include "_screens/AuthLoginScreen.asm"
 	include "_screens/AuthPasswordScreen.asm"
 	include	"_screens/AuthenticationScreen.asm"
+	include "_screens/ExplorerScreen.asm"
 
 ; =========================================================
 ; Common

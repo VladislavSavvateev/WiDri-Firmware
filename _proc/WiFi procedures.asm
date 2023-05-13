@@ -15,6 +15,9 @@ AUTH__LOGIN         equ $20
 AUTH__LOGOUT        equ $21
 AUTH__IS_LOGGED_IN  equ $22
 
+FILE__GET_LISTING   equ $30
+FILE__DOWNLOAD      equ $31
+
 ; ===================================================================
 ; Checks for magic word in Arduino at the start
 ; output:
@@ -188,6 +191,7 @@ WiFi_GetScanResuls:
 WiFi_GetScanResults_r:
     moveq   #0,d0
     move.b  $B00000,d0  ; get APs count
+    beq.s   @rts
     move.b  d0,(a1)+
     subq.b  #1,d0
 
@@ -205,6 +209,7 @@ WiFi_GetScanResults_r:
         move.b  $B00000,(a1)+   ; sec byte
         dbf     d0,@apLoop
     
+@rts
     rts
 
 ; ===================================================================
@@ -295,4 +300,69 @@ Auth_Logout:
 ; ===================================================================
 Auth_IsLoggedIn:
     move.b  #AUTH__IS_LOGGED_IN,$B00000
+    rts
+
+; ===================================================================
+; Sends file.get_listing
+; input:
+;   d1 - first half of ID   ($0000****)
+;   d2 - second half of ID  ($****0000)
+; ===================================================================
+File_GetListing:
+    move.b  #FILE__GET_LISTING,$B00000
+    
+    ; sends first half of ID
+    move.l  d1,$B00000
+    move.l  d2,$B00000
+
+    rts
+
+; ===================================================================
+; Reads answer from file.get_listing
+; input:
+;   a1 - buffer
+; ===================================================================
+File_GetListing_r:
+    moveq   #0,d1
+    move.w  $B00000,d1
+    subq.w  #1,d1
+
+@readPath
+        move.b  $B00000,(a1)+
+    dbf     d1,@readPath
+    move.b  #0,(a1)+
+
+    moveq   #0,d1
+    move.b  $B00000,d1
+    lsl.w   #8,d1
+    move.b  $B00000,d1
+    move.w  d1,(a1)+
+    beq.s   @rts
+
+    subq.w  #1,d1
+@entries
+        ; read entry ID
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+        move.b  $B00000,(a1)+
+
+        ; read type
+        move.b  $B00000,(a1)+
+
+        moveq   #0,d2
+        move.w  $B00000,d2
+        subq.w  #1,d2
+        
+@entryName 
+            move.b  $B00000,(a1)+
+        dbf     d2,@entryName
+        move.b  #0,(a1)+
+    dbf     d1,@entries
+
+@rts
     rts
