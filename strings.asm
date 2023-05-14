@@ -31,6 +31,8 @@
     string AuthProcess_OK, 'Successfully logged in!'
     string AuthProcess_Fail, 'Login failed!'
 
+    string Explorer_Loading, 'Loading...'
+
     string Common_OK, 'OK!'
     string Common_Fail, 'FAIL!'
     string Common_Yes, 'Yes'

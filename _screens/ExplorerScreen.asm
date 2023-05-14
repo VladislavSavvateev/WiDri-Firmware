@@ -127,6 +127,14 @@ ExplorerScreen_PalFadeIn:
 ; ---------------------------------------------------------------------------
 ExplorerScreen_GetListing:
     addq.b  #2,vExplorerScreen_Action   ; pre-move to the next action
+
+    PosToVRAM   $C000, 120/8, 8/8, 512, d7
+    move.w  #512,d5
+    move.w  #0,d3
+    lea     Str_Explorer_Loading,a6
+    jsr     DrawText
+
+    move.w  #0,vExplorerScreen_Offset
     move.l  vExplorerScreen_CurrentEntryId_1,d1
     move.l  vExplorerScreen_CurrentEntryId_2,d2
     jmp     File_GetListing
@@ -146,6 +154,9 @@ ExplorerScreen_GetListing__Read:
 ; ---------------------------------------------------------------------------
 ExplorerScreen_DrawPath:
     addq.b  #2,vExplorerScreen_Action
+
+    clearRect   512, $C000, 32, 8, 256, 32, 0
+
     ; 32 32
     PosToVRAM   $C000, 32/8, 32/8, 512, d7
     move.w  #0,d3
@@ -263,7 +274,7 @@ ExplorerScreen_Control:
     ; check offset
 @shiftOffsetDown
     cmp.w   #6,vExplorerScreen_EntryCount
-    ble.s   ExplorerScreen_LoopEnd
+    ble.s   @rts
 
     moveq   #0,d0
     moveq   #0,d1
@@ -271,12 +282,12 @@ ExplorerScreen_Control:
     subq.w  #6,d0
     move.w  vExplorerScreen_Offset,d1
     cmp.w   d0,d1
-    beq.s   ExplorerScreen_LoopEnd
+    beq.s   @rts
     addq.w  #1,vExplorerScreen_Offset
     jmp     @redraw
 
 @up btst    #iUp,Joypad+Press
-    beq.s   ExplorerScreen_LoopEnd
+    beq.s   @a
 
     move.w  vExplorerScreen_Position,d0
     cmp.w   vExplorerScreen_MaxPosition,d0
@@ -286,12 +297,91 @@ ExplorerScreen_Control:
     
 @shiftOffsetUp
     tst.w   vExplorerScreen_Offset
-    beq.s   ExplorerScreen_LoopEnd
+    beq.s   @rts
     subq.w  #1,vExplorerScreen_Offset
 
 @redraw
     subq.b  #2,vExplorerScreen_Action
+@rts
     rts
+
+@a
+    btst    #iA,Joypad+Press
+    beq.s   @rts
+
+ExplorerScreen_ClickHandler:
+    lea     vExplorerScreen_Entries,a6
+
+    ; skip path
+@skipPath
+        tst.b  (a6)+
+        bne.s   @skipPath
+
+    moveq   #0,d1
+    move.b  (a6)+,d1
+    lsl.w   #8,d1
+    move.b  (a6)+,d1
+    subq.w  #1,d1
+
+    cmp.w   #5,d1
+    ble.s   @countIsOk
+    move.w  #5,d1
+
+@countIsOk
+    moveq   #0,d0
+    move.w  vExplorerScreen_Offset,d0
+    beq.s   @iterEntries
+    subq.w  #1,d0
+@skip
+        lea     9(a6),a6
+@skipName
+            tst.b   (a6)+
+            bne.s   @skipName
+        dbf     d0,@skip
+
+@iterEntries
+        cmp.w   vExplorerScreen_Position,d1
+        beq.s   @found
+        lea     9(a6),a6
+@skipEntryName
+            tst.b   (a6)+
+            bne.s   @skipEntryName
+        dbf     d1,@iterEntries
+
+@found
+        moveq   #0,d2
+        moveq   #0,d3
+
+        ; read first half of ID
+        move.b  (a6)+,d2
+        lsl.l   #8,d2
+        move.b  (a6)+,d2
+        lsl.l   #8,d2
+        move.b  (a6)+,d2
+        lsl.l   #8,d2
+        move.b  (a6)+,d2
+
+        ; read second half of ID
+        move.b  (a6)+,d3
+        lsl.l   #8,d3
+        move.b  (a6)+,d3
+        lsl.l   #8,d3
+        move.b  (a6)+,d3
+        lsl.l   #8,d3
+        move.b  (a6)+,d3
+
+        tst.b   (a6)+   ; skip type
+        beq.s   @foundFile
+
+        move.l  d2,vExplorerScreen_CurrentEntryId_1
+        move.l  d3,vExplorerScreen_CurrentEntryId_2
+        move.w  #4,vExplorerScreen_Action
+        rts ; found dir
+
+@foundFile
+        rts
+
+
 ; ---------------------------------------------------------------------------
 ExplorerScreen_LoopEnd:
     rts
